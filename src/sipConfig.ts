@@ -1,5 +1,5 @@
 // SIP Configuration
-export const sipConfig = {
+const sipConfig = {
   // User 1
   user1: {
     uri: 'sip:3100@pbx.acrobits.cz',

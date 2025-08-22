@@ -1,4 +1,9 @@
+// React
 import { useState } from 'react';
+
+// Helpers and utilities
+import { isValidPhoneNumber } from '../helpers/utils';
+import { BUTTON_TEXT } from '../helpers/constants';
 
 interface DialPadProps {
   onNumberChange: (number: string) => void;
@@ -17,10 +22,6 @@ export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPad
     onNumberChange(currentNumber.slice(0, -1));
   };
 
-  // Validate phone number (min 4 digits, numbers only)
-  const isValidPhoneNumber = (number: string): boolean => {
-    return /^\d{4,}$/.test(number);
-  };
 
   return (
     <div className="phone-input-container">
@@ -78,7 +79,7 @@ export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPad
               }}
               disabled={!isValidPhoneNumber(currentNumber)}
             >
-              Call
+              {BUTTON_TEXT.CALL}
             </button>
           </div>
         </div>

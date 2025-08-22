@@ -1,8 +1,17 @@
+// React
 import { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
+
+// Local components
 import { StatusBar } from './StatusBar';
 import { CallControls } from './CallControls';
+
+// Store and state management
 import type { RootState } from '../store';
+
+// Helpers and utilities
+import { CALL_STATUS } from '../helpers/constants';
+import { formatDuration } from '../helpers/utils';
 
 interface CallScreenProps {
   calleeNumber: string;
@@ -61,7 +70,7 @@ export const CallScreen = ({
       </div>
       
       <div className="call-status">
-        {isOnHold ? 'On Hold' : isMuted ? 'Muted' : `Connected (${Math.floor(callDuration / 60).toString().padStart(2, '0')}:${(callDuration % 60).toString().padStart(2, '0')})`}
+        {isOnHold ? CALL_STATUS.ON_HOLD : isMuted ? CALL_STATUS.MUTED : `${CALL_STATUS.CONNECTED} (${formatDuration(callDuration)})`}
       </div>
       
       <CallControls

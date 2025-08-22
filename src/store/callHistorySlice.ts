@@ -1,10 +1,13 @@
+// Redux toolkit
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
+import type { CallDirection, CallStatus } from '../helpers/types';
 
 export interface CallHistoryItem {
   id: string;
   number: string;
-  direction: 'incoming' | 'outgoing';
-  status: 'completed' | 'missed' | 'rejected' | 'in-progress';
+  direction: CallDirection;
+  status: CallStatus;
   timestamp: Date | string;
   duration?: number;
 }
@@ -24,18 +27,9 @@ export const callHistorySlice = createSlice({
     addCall: (state, action: PayloadAction<CallHistoryItem>) => {
       state.calls.unshift(action.payload);
     },
-    updateCall: (state, action: PayloadAction<CallHistoryItem>) => {
-      const index = state.calls.findIndex(call => call.id === action.payload.id);
-      if (index !== -1) {
-        state.calls[index] = action.payload;
-      }
-    },
-    clearHistory: (state) => {
-      state.calls = [];
-    },
   },
 });
 
-export const { addCall, updateCall, clearHistory } = callHistorySlice.actions;
+export const { addCall } = callHistorySlice.actions;
 
 export default callHistorySlice.reducer;

@@ -1,5 +1,12 @@
+// React
 import { useState } from 'react';
-import type { CallHistoryItem } from '../services/sipService';
+
+// Types
+import type { CallHistoryItem } from '../store/callHistorySlice';
+import type { CallDirection } from '../helpers/types';
+
+// Helpers and utilities
+import { formatTime, formatDate, formatDuration } from '../helpers/utils';
 
 interface HistoryScreenProps {
   callHistory: CallHistoryItem[];
@@ -8,33 +15,13 @@ interface HistoryScreenProps {
 }
 
 export const HistoryScreen = ({ callHistory, onBack, onCall }: HistoryScreenProps) => {
-  const [filter, setFilter] = useState<'all' | 'incoming' | 'outgoing'>('all');
+  const [filter, setFilter] = useState<'all' | CallDirection>('all');
   
   const filteredHistory = callHistory.filter(call => 
     filter === 'all' || call.direction === filter
   );
   
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
   
-  const formatTime = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-  
-  const formatDate = (date: Date | string) => {
-    const today = new Date();
-    const callDate = typeof date === 'string' ? new Date(date) : date;
-    
-    if (callDate.toDateString() === today.toDateString()) {
-      return 'Today';
-    }
-    
-    return callDate.toLocaleDateString([], { month: 'short', day: 'numeric' });
-  };
   
   return (
     <div className="history-screen">

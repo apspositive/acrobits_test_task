@@ -1,4 +1,7 @@
+// Components
 import { VoIPApp } from './components/VoIPApp'
+
+// Styles
 import './App.css'
 
 function App() {

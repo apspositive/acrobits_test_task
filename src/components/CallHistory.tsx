@@ -1,8 +1,13 @@
+// Helpers and utilities
+import { formatTime } from '../helpers/utils';
+
+import type { CallDirection, CallStatus } from '../helpers/types';
+
 interface CallHistoryItem {
   id: string;
   number: string;
-  direction: 'incoming' | 'outgoing';
-  status: 'completed' | 'missed' | 'rejected' | 'in-progress';
+  direction: CallDirection;
+  status: CallStatus;
   timestamp: Date | string;
   duration?: number;
 }
@@ -13,10 +18,6 @@ interface CallHistoryProps {
 }
 
 export const CallHistory = ({ callHistory, onCall }: CallHistoryProps) => {
-  const formatTime = (date: Date | string) => {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
 
   return (
     <div className="call-history">

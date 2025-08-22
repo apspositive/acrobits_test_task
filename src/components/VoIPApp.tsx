@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { SipService } from '../services/sipService';
+
+// Local components
 import { StatusBar } from './StatusBar';
 import { DialPad } from './DialPad';
 import { CallControls } from './CallControls';
@@ -8,16 +9,29 @@ import { CallHistory } from './CallHistory';
 import { CallScreen } from './CallScreen';
 import { HistoryScreen } from './HistoryScreen';
 import { IncomingCallScreen } from './IncomingCallScreen';
-import sipConfig from '../sipConfig';
 import { ThemeProvider } from './ThemeProvider';
+
+// Services and configuration
+import { SipService } from '../services/sipService';
+import sipConfig from '../sipConfig';
+
+// Store and state management
 import { setCallerNumber, resetCallState } from '../store/sipSlice';
 import type { RootState, AppDispatch } from '../store';
 
+// Helpers and utilities
+import { parseSipUri, isValidPhoneNumber } from '../helpers/utils';
+import { CALL_STATUS, SCREEN } from '../helpers/constants';
+
 export const VoIPApp = () => {
-  // State
+  // ======================================================================
+  // STATE MANAGEMENT
+  // ======================================================================
+  
+  // Local component state
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showCallScreen, setShowCallScreen] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState<'main' | 'history'>('main');
+  const [currentScreen, setCurrentScreen] = useState<'main' | 'history'>(SCREEN.MAIN);
   const [incomingCall, setIncomingCall] = useState(false);
   
   // Redux hooks
@@ -25,27 +39,25 @@ export const VoIPApp = () => {
   const sipState = useSelector((state: RootState) => state.sip);
   const callHistory = useSelector((state: RootState) => state.callHistory.calls);
   
-  // Extract SIP state values
+  // Extract SIP state values for easier access
   const { 
-    isConnected, 
-    isRegistered, 
-    callStatus, 
-    callerNumber
+    isConnected,     // Whether we have a connection to the SIP server
+    isRegistered,    // Whether we are registered with the SIP server
+    callStatus,      // Current call status message
+    callerNumber     // Number of the incoming caller (if any)
   } = sipState;
   
-  // Initialize SIP service
+  // ======================================================================
+  // SIP SERVICE INITIALIZATION
+  // ======================================================================
+  
+  // Initialize SIP service with user credentials
   const [sipService] = useState(() => {
-    // Parse user1 URI to extract username and domain
-    const parseURI = (uri: string) => {
-      const match = uri.match(/sip:(.*?)@(.*)/);
-      return match ? { username: match[1], domain: match[2] } : { username: '', domain: '' };
-    };
-    
-    const { username, domain } = parseURI(sipConfig.user1.uri);
+    const { username, domain } = parseSipUri(sipConfig.user1.uri);
     return new SipService(username, domain);
   });
   
-  // Initialize SIP service
+  // Initialize SIP service on component mount
   useEffect(() => {
     // Set up state change listener - now handled by Redux in SipService
     sipService.setOnStateChange();
@@ -62,12 +74,15 @@ export const VoIPApp = () => {
     };
   }, [sipService, dispatch]);
   
-  // Validate phone number (min 4 digits, numbers only)
-  const isValidPhoneNumber = (number: string): boolean => {
-    return /^\d{4,}$/.test(number);
-  };
   
-  // Place outgoing call
+  // ======================================================================
+  // CALL MANAGEMENT METHODS
+  // ======================================================================
+  
+  /**
+   * Place outgoing call
+   * Validates phone number before placing call
+   */
   const placeCall = async () => {
     // Only place call if validation passes
     if (isValidPhoneNumber(phoneNumber)) {
@@ -75,7 +90,10 @@ export const VoIPApp = () => {
     }
   };
   
-  // End current call
+  /**
+   * End current call
+   * Uses useCallback to prevent unnecessary re-renders
+   */
   const endCall = useCallback(async () => {
     console.log('Ending call from UI');
     await sipService.endCall();
@@ -110,33 +128,55 @@ export const VoIPApp = () => {
     }
   }, [sipState.isInCall, sipState.isCalling, endCall]);
   
-  // Accept incoming call
+  // ======================================================================
+  // INCOMING CALL METHODS
+  // ======================================================================
+  
+  /**
+   * Accept incoming call
+   */
   const acceptCall = async () => {
     await sipService.acceptIncomingCall();
     setIncomingCall(false);
   };
   
-  // Reject incoming call
+  /**
+   * Reject incoming call
+   */
   const rejectCall = async () => {
     await sipService.rejectIncomingCall();
     setIncomingCall(false);
     dispatch(setCallerNumber(undefined));
   };
   
-  // Ignore incoming call (same as reject but without explicit user action)
+  /**
+   * Ignore incoming call (same as reject but without explicit user action)
+   */
   const ignoreCall = async () => {
     await sipService.rejectIncomingCall();
   };
   
-  // Toggle mute
+  // ======================================================================
+  // CALL CONTROL METHODS
+  // ======================================================================
+  
+  /**
+   * Toggle mute state for the current call
+   */
   const toggleMute = () => {
     sipService.toggleMute();
   };
   
-  // Toggle hold
+  /**
+   * Toggle hold state for the current call
+   */
   const toggleHold = () => {
     sipService.toggleHold();
   };
+  
+  // ======================================================================
+  // RENDER METHOD
+  // ======================================================================
   
   return (
     <div className="voip-container">
@@ -171,7 +211,7 @@ export const VoIPApp = () => {
             
             {/* Call Status */}
             <div className="call-status">
-              {callStatus}
+              {callStatus === 'Ready' ? CALL_STATUS.READY : callStatus}
             </div>
             
             {/* Phone Number Input and Dial Pad */}

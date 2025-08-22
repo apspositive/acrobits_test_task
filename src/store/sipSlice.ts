@@ -1,3 +1,4 @@
+// Redux toolkit
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export interface SipState {

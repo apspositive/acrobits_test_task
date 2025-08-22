@@ -1,4 +1,7 @@
+// Redux toolkit
 import { configureStore } from '@reduxjs/toolkit';
+
+// Reducers
 import sipReducer from './sipSlice.ts';
 import callHistoryReducer from './callHistorySlice.ts';
 

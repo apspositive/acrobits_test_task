@@ -1,5 +1,11 @@
+// React
 import { useState, useEffect, type ReactNode } from 'react';
+
+// Icons
 import { Sun, Moon } from 'lucide-react';
+
+// Helpers and utilities
+import { THEME } from '../helpers/constants';
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -8,7 +14,7 @@ interface ThemeProviderProps {
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = localStorage.getItem('theme');
-    return (savedTheme as 'light' | 'dark') || 'light';
+    return (savedTheme as 'light' | 'dark') || THEME.LIGHT;
   });
 
   useEffect(() => {
@@ -17,7 +23,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
+    setTheme(prevTheme => prevTheme === THEME.LIGHT ? THEME.DARK : THEME.LIGHT);
   };
 
   return (

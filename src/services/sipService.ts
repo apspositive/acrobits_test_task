@@ -1,15 +1,22 @@
+// External libraries
 import { UserAgent, Registerer, Inviter, SessionState, Invitation, UserAgentState } from 'sip.js';
+
+// Store and state management
 import store from '../store';
 import { updateSipState } from '../store/sipSlice';
 import { addCall } from '../store/callHistorySlice';
+
+// Configuration
 import sipConfig from '../sipConfig';
 
 // Types
+import type { CallDirection, CallStatus } from '../helpers/types';
+
 export interface CallHistoryItem {
   id: string;
   number: string;
-  direction: 'incoming' | 'outgoing';
-  status: 'completed' | 'missed' | 'rejected' | 'in-progress';
+  direction: CallDirection;
+  status: CallStatus;
   timestamp: Date | string;
   duration?: number;
 }
@@ -24,28 +31,48 @@ export interface SipServiceState {
   isOnHold: boolean;
 }
 
-// SIP Service Class
+/**
+ * SIP Service Class
+ * 
+ * This class handles all SIP communication including:
+ * - User agent initialization and registration
+ * - Incoming and outgoing call handling
+ * - Call state management
+ * - Integration with Redux store for UI updates
+ */
 export class SipService {
+  // SIP.js objects
   private userAgent: UserAgent | null = null;
   private registerer: Registerer | null = null;
   private session: Inviter | Invitation | null = null;
   private incomingInvitation: Invitation | null = null;
+  
+  // Call tracking
   private callStartTime: number = 0;
+  
+  // User credentials
   private username: string;
   private domain: string;
+  
+  // Registration management
   private registrationRefreshInterval: ReturnType<typeof setInterval> | null = null;
   
-  // State
+  // Current state
   private state: SipServiceState = {
-    isConnected: false,
-    isRegistered: false,
-    isCalling: false,
-    isInCall: false,
-    callStatus: 'Ready',
-    isMuted: false,
-    isOnHold: false
+    isConnected: false,     // Whether we have a connection to the SIP server
+    isRegistered: false,    // Whether we are registered with the SIP server
+    isCalling: false,       // Whether we are currently placing or receiving a call
+    isInCall: false,        // Whether we are currently in an active call
+    callStatus: 'Ready',    // Current call status message for UI
+    isMuted: false,         // Whether the current call is muted
+    isOnHold: false         // Whether the current call is on hold
   };
   
+  /**
+   * Constructor
+   * @param username SIP username
+   * @param domain SIP domain
+   */
   constructor(
     username: string,
     domain: string
@@ -54,7 +81,14 @@ export class SipService {
     this.domain = domain;
   }
   
-  // These methods are kept for backward compatibility but won't be used
+  // ======================================================================
+  // BACKWARD COMPATIBILITY METHODS
+  // ======================================================================
+  
+  /**
+   * These methods are kept for backward compatibility but won't be used
+   * State changes are now handled through Redux
+   */
   public setOnStateChange() {
     // No-op - using Redux instead
   }
@@ -63,7 +97,21 @@ export class SipService {
     // No-op - using Redux instead
   }
   
-  // Initialize SIP user agent
+  // ======================================================================
+  // INITIALIZATION METHODS
+  // ======================================================================
+  
+  /**
+   * Initialize SIP user agent
+   * 
+   * This method:
+   * 1. Creates and configures the SIP user agent
+   * 2. Sets up event listeners for connection state changes
+   * 3. Configures incoming call handling
+   * 4. Starts the user agent
+   * 5. Registers with the SIP server
+   * 6. Sets up periodic registration refresh
+   */
   public async initialize() {
     try {
       // Create user agent
@@ -213,7 +261,20 @@ export class SipService {
     }
   }
   
-  // Place outgoing call
+  // ======================================================================
+  // CALL MANAGEMENT METHODS
+  // ======================================================================
+  
+  /**
+   * Place outgoing call
+   * 
+   * This method:
+   * 1. Creates an invitation to the specified phone number
+   * 2. Sets up event listeners for call state changes
+   * 3. Sends the invitation
+   * 
+   * @param phoneNumber The phone number to call
+   */
   public async placeCall(phoneNumber: string) {
     if (!this.userAgent || !phoneNumber) return;
     
@@ -301,7 +362,15 @@ export class SipService {
     }
   }
   
-  // End current call
+  /**
+   * End current call
+   * 
+   * This method handles ending calls in various states:
+   * - Rejecting incoming calls that haven't been answered
+   * - Ending established calls with a BYE message
+   * - Canceling outgoing calls that haven't been answered
+   * - Updating UI state and call history
+   */
   public async endCall() {
     console.log('Ending call, session:', this.session, 'incomingInvitation:', this.incomingInvitation);
     // Check if this is an incoming call that needs to be rejected
@@ -407,6 +476,14 @@ export class SipService {
       });
     }
   }
+  
+  // ======================================================================
+  // CALL CONTROL METHODS
+  // ======================================================================
+  
+  /**
+   * Toggle mute state for the current call
+   */
   public toggleMute() {
     if (this.session) {
       // In a real implementation, this would actually mute the call
@@ -416,7 +493,9 @@ export class SipService {
     }
   }
   
-  // Toggle hold
+  /**
+   * Toggle hold state for the current call
+   */
   public async toggleHold() {
     if (this.session) {
       // In a real implementation, this would actually put the call on hold
@@ -426,22 +505,43 @@ export class SipService {
     }
   }
   
-  // Get current state
+  // ======================================================================
+  // GETTER METHODS
+  // ======================================================================
+  
+  /**
+   * Get current state
+   * @returns A copy of the current SIP service state
+   */
   public getState(): SipServiceState {
     return { ...this.state };
   }
   
-  // Get call start time
+  /**
+   * Get call start time
+   * @returns Timestamp when the current call started
+   */
   public getCallStartTime(): number {
     return this.callStartTime;
   }
   
-  // Get call duration
+  /**
+   * Get call duration
+   * @returns Duration of the current call in seconds
+   */
   public getCallDuration(): number {
     return this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
   }
   
-  // Accept incoming call
+  // ======================================================================
+  // INCOMING CALL METHODS
+  // ======================================================================
+  
+  /**
+   * Accept incoming call
+   * 
+   * This method accepts an incoming call invitation and updates the session state
+   */
   public async acceptIncomingCall() {
     if (this.incomingInvitation && this.incomingInvitation.state === SessionState.Initial) {
       try {
@@ -468,7 +568,11 @@ export class SipService {
     }
   }
   
-  // Reject incoming call
+  /**
+   * Reject incoming call
+   * 
+   * This method rejects an incoming call invitation and updates the UI state
+   */
   public async rejectIncomingCall() {
     if (this.incomingInvitation && this.incomingInvitation.state === SessionState.Initial) {
       try {
@@ -500,7 +604,10 @@ export class SipService {
     }
   }
   
-  // Get caller number for incoming call
+  /**
+   * Get caller number for incoming call
+   * @returns The caller's phone number or 'Unknown' if not available
+   */
   public getIncomingCallerNumber(): string {
     if (this.incomingInvitation) {
       return this.incomingInvitation.remoteIdentity.uri.user || 'Unknown';
@@ -508,7 +615,20 @@ export class SipService {
     return '';
   }
   
-  // Cleanup
+  // ======================================================================
+  // CLEANUP METHODS
+  // ======================================================================
+  
+  /**
+   * Cleanup SIP resources
+   * 
+   * This method:
+   * 1. Clears the registration refresh interval
+   * 2. Ends any active calls
+   * 3. Unregisters from the SIP server
+   * 4. Stops the user agent
+   * 5. Resets session state
+   */
   public async cleanup() {
     // Clear registration refresh interval
     if (this.registrationRefreshInterval) {
@@ -557,4 +677,3 @@ export class SipService {
   }
 }
 
-export default SipService;

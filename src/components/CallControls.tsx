@@ -1,5 +1,10 @@
+// React Redux
 import { useSelector } from 'react-redux';
 import type { RootState } from '../store';
+
+// Helpers and utilities
+import { isValidPhoneNumber, formatDuration } from '../helpers/utils';
+import { BUTTON_TEXT } from '../helpers/constants';
 
 interface CallControlsProps {
   phoneNumber: string;
@@ -27,10 +32,6 @@ export const CallControls = ({
   // Calculate call duration
   const callDuration = callStartTime > 0 ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
   
-  // Validate phone number (min 4 digits, numbers only)
-  const isValidPhoneNumber = (number: string): boolean => {
-    return /^\d{4,}$/.test(number);
-  };
   
   // Define toggle functions
   const onMuteToggle = () => {
@@ -50,16 +51,16 @@ export const CallControls = ({
             className={`control-button mute-button ${isMuted ? 'active' : ''}`}
             onClick={onMuteToggle}
           >
-            {isMuted ? 'Unmute' : 'Mute'}
+            {isMuted ? BUTTON_TEXT.UNMUTE : BUTTON_TEXT.MUTE}
           </button>
           <div className="call-duration-display">
-            {Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}
+            {formatDuration(callDuration)}
           </div>
           <button 
             className={`control-button hold-button ${isOnHold ? 'active' : ''}`}
             onClick={onHoldToggle}
           >
-            {isOnHold ? 'Resume' : 'Hold'}
+            {isOnHold ? BUTTON_TEXT.RESUME : BUTTON_TEXT.HOLD}
           </button>
         </div>
       )}
@@ -70,14 +71,14 @@ export const CallControls = ({
           disabled={!isRegistered || !isConnected || !phoneNumber || !isValidPhoneNumber(phoneNumber)}
           className="call-button"
         >
-          Call
+          {BUTTON_TEXT.CALL}
         </button>
       ) : (
         <button 
           onClick={onEndCall}
           className="hangup-button"
         >
-          Hang Up
+          {BUTTON_TEXT.HANG_UP}
         </button>
       )}
     </div>

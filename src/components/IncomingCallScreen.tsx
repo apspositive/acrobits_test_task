@@ -1,4 +1,8 @@
+// React
 import { useState, useEffect } from 'react';
+
+// Helpers and utilities
+import { BUTTON_TEXT } from '../helpers/constants';
 
 interface IncomingCallScreenProps {
   callerNumber: string;
@@ -36,13 +40,13 @@ export const IncomingCallScreen = ({
         <div className="auto-reject-timer">Auto-reject in {timeLeft}s</div>
         <div className="screen-actions">
           <button className="accept-button" onClick={onAccept}>
-            Accept
+            {BUTTON_TEXT.ACCEPT}
           </button>
           <button className="reject-button" onClick={onReject}>
-            Reject
+            {BUTTON_TEXT.REJECT}
           </button>
           <button className="ignore-button" onClick={onIgnore}>
-            Ignore
+            {BUTTON_TEXT.IGNORE}
           </button>
         </div>
       </div>
