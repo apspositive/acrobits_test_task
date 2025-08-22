@@ -9,6 +9,9 @@ import { addCall } from '../store/callHistorySlice';
 // Configuration
 import sipConfig from '../sipConfig';
 
+// Audio service
+import { audioService } from './audioService';
+
 // Types
 import type { CallDirection, CallStatus } from '../helpers/types';
 
@@ -154,6 +157,9 @@ export class SipService {
           // Store the invitation for later handling
           this.incomingInvitation = invitation;
           
+          // Play ringtone for incoming call
+          audioService.playRingtone();
+          
           // Update state to indicate incoming call
           this.updateState({
             isCalling: true,
@@ -212,7 +218,8 @@ export class SipService {
                     duration: callStatus === 'completed' ? duration : undefined
                   }));
                   
-                  // Clear invitation reference if it's still pointing to this invitation
+                  // Stop ringtone and clear the incoming invitation
+                  audioService.stopRingtone();
                   if (this.incomingInvitation === invitation) {
                     this.incomingInvitation = null;
                   }
@@ -396,7 +403,8 @@ export class SipService {
         // Dispatch to Redux store
         store.dispatch(addCall(rejectedCall));
         
-        // Clear the incoming invitation
+        // Stop ringtone and clear the incoming invitation
+        audioService.stopRingtone();
         this.incomingInvitation = null;
       } catch (error) {
         console.error('Error rejecting call:', error);
@@ -549,7 +557,8 @@ export class SipService {
         await this.incomingInvitation.accept();
         // Set the session to the invitation for proper call handling
         this.session = this.incomingInvitation;
-        // Clear the incoming invitation as it's now the active session
+        // Stop ringtone and clear the incoming invitation as it's now the active session
+        audioService.stopRingtone();
         this.incomingInvitation = null;
         // Update state to reflect we're now in a call
         this.callStartTime = Date.now();
@@ -596,7 +605,8 @@ export class SipService {
         // Dispatch to Redux store
         store.dispatch(addCall(rejectedCall));
         
-        // Clear the incoming invitation
+        // Stop ringtone and clear the incoming invitation
+        audioService.stopRingtone();
         this.incomingInvitation = null;
       } catch (error) {
         console.error('Error rejecting call:', error);
@@ -659,6 +669,9 @@ export class SipService {
         console.error('Error stopping user agent:', error);
       }
     }
+    
+    // Stop any playing ringtone
+    audioService.stopRingtone();
     
     // Reset session and call start time
     this.session = null;

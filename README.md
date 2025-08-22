@@ -92,6 +92,13 @@ The application follows a component-based architecture with separation of concer
 - `CallControls.tsx`: Call action buttons
 - `CallHistory.tsx`: Call history display
 
+## Known issues
+
+- The Issue with the status of rejected on other side calls
+- Sound issue with incoming call 
+- Did not finished with Styling: Use Tailwind, keep it as future improvement
+
+
 ## Troubleshooting
 
 - If the status shows "Disconnected", check:
