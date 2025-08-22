@@ -1,0 +1,709 @@
+/* Light theme (default) */
+:root {
+  --bg-color: #ffffff;
+  --text-color: #333333;
+  --container-bg: #ffffff;
+  --border-color: #ccc;
+  --input-bg: #ffffff;
+  --input-border: #aaa;
+  --disabled-bg: #f0f0f0;
+  --status-bar-bg: #f0f0f0;
+  --history-border: #ddd;
+  
+  /* Button colors */
+  --call-btn-bg: #28a745;
+  --call-btn-hover: #218838;
+  --call-btn-text: #ffffff;
+  --hangup-btn-bg: #dc3545;
+  --hangup-btn-hover: #c82333;
+  --hangup-btn-text: #ffffff;
+  --disabled-btn-bg: #6c757d;
+  --disabled-btn-text: #ffffff;
+  
+  /* Status colors */
+  --connected-color: #28a745;
+  --connected-bg: #e6f4e6;
+  --disconnected-color: #dc3545;
+  --disconnected-bg: #fce6e6;
+  --registered-color: #28a745;
+  --registered-bg: #e6f4e6;
+  --unregistered-color: #ffc107;
+  --unregistered-bg: #fff3cd;
+  
+  /* History status colors */
+  --completed-bg: #d4edda;
+  --completed-text: #155724;
+  --missed-bg: #f8d7da;
+  --missed-text: #721c24;
+  --rejected-bg: #fff3cd;
+  --rejected-text: #856404;
+  --in-progress-bg: #cce5ff;
+  --in-progress-text: #004085;
+  
+  /* Dial pad colors */
+  --dial-pad-bg: #f8f8f8;
+  --dial-pad-key-bg: #ffffff;
+  --dial-pad-key-border: #ccc;
+  --dial-pad-key-hover: #f0f0f0;
+}
+
+/* Dark theme */
+[data-theme="dark"] {
+  --bg-color: #1a1a1a;
+  --text-color: #e0e0e0;
+  --container-bg: #2d2d2d;
+  --border-color: #444;
+  --input-bg: #3a3a3a;
+  --input-border: #555;
+  --disabled-bg: #333;
+  --status-bar-bg: #3a3a3a;
+  --history-border: #444;
+  
+  /* Button colors */
+  --call-btn-bg: #28a745;
+  --call-btn-hover: #218838;
+  --call-btn-text: #ffffff;
+  --hangup-btn-bg: #dc3545;
+  --hangup-btn-hover: #c82333;
+  --hangup-btn-text: #ffffff;
+  --disabled-btn-bg: #6c757d;
+  --disabled-btn-text: #ffffff;
+  
+  /* Status colors */
+  --connected-color: #4cd174;
+  --connected-bg: #1c3120;
+  --disconnected-color: #dc3545;
+  --disconnected-bg: #311c1c;
+  --registered-color: #4cd174;
+  --registered-bg: #1c3120;
+  --unregistered-color: #ffc107;
+  --unregistered-bg: #312c1c;
+  
+  /* History status colors */
+  --completed-bg: #1c3120;
+  --completed-text: #a0d6a0;
+  --missed-bg: #311c1c;
+  --missed-text: #e0a0a0;
+  --rejected-bg: #312c1c;
+  --rejected-text: #d6c6a0;
+  --in-progress-bg: #1c2c31;
+  --in-progress-text: #a0c6e0;
+  
+  /* Dial pad colors */
+  --dial-pad-bg: #3a3a3a;
+  --dial-pad-key-bg: #444;
+  --dial-pad-key-border: #555;
+  --dial-pad-key-hover: #555;
+}
+
+/* Base styles */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+  min-width: 460px;
+}
+
+.voip-container {
+  min-width: 460px;
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: Arial, sans-serif;
+  background-color: var(--container-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Theme switcher */
+.theme-switcher {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.theme-switcher button {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.theme-switcher button:hover {
+  background: var(--status-bar-bg);
+}
+
+.status-bar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  background-color: var(--status-bar-bg);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.status-indicator {
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.status-icon {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-icon.connected {
+  background-color: var(--connected-color);
+}
+
+.status-icon.disconnected {
+  background-color: var(--disconnected-color);
+}
+
+.status-icon.registered {
+  background-color: var(--registered-color);
+}
+
+.status-icon.unregistered {
+  background-color: var(--unregistered-color);
+}
+
+.status-indicator.connected {
+  color: var(--connected-color);
+  background-color: var(--connected-bg);
+}
+
+.status-indicator.disconnected {
+  color: var(--disconnected-color);
+  background-color: var(--disconnected-bg);
+}
+
+.status-indicator.registered {
+  color: var(--registered-color);
+  background-color: var(--registered-bg);
+}
+
+.status-indicator.unregistered {
+  color: var(--unregistered-color);
+  background-color: var(--unregistered-bg);
+}
+
+.call-status {
+  padding: 1rem;
+  margin: 1rem 0;
+  background-color: var(--status-bar-bg);
+  border-radius: 4px;
+  font-size: 1.1rem;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dialer {
+  margin: 2rem 0;
+}
+
+.phone-input-container {
+  position: relative;
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.phone-input {
+  width: 100%;
+  padding: 1rem 3rem 1rem 1rem;
+  font-size: 1.2rem;
+  border: 2px solid var(--input-border);
+  border-radius: 4px;
+  text-align: center;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  box-sizing: border-box;
+}
+
+.phone-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.phone-input:disabled {
+  background-color: var(--disabled-bg);
+  cursor: not-allowed;
+}
+
+.input-icon {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+.input-icon:hover {
+  opacity: 1;
+}
+
+/* Dial Pad Styles */
+.dial-pad {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--dial-pad-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  padding: 1rem;
+  margin-top: 0.5rem;
+}
+
+.dial-pad-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.dial-pad-key {
+  padding: 1rem;
+  font-size: 1.5rem;
+  background-color: var(--dial-pad-key-bg);
+  border: 1px solid var(--dial-pad-key-border);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: background-color 0.2s;
+  color: var(--text-color);
+}
+
+.dial-pad-key:hover {
+  background-color: var(--dial-pad-key-hover);
+}
+
+.dial-pad-key:active {
+  background-color: #007bff;
+  color: white;
+}
+
+.dial-pad-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.dial-pad-backspace {
+  grid-column: span 2;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.dial-pad-backspace:hover {
+  background-color: #c82333;
+}
+
+.dial-pad-close {
+  background-color: var(--dial-pad-key-bg);
+  border: 1px solid var(--dial-pad-key-border);
+  border-radius: 8px;
+  padding: 1rem;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.dial-pad-close:hover {
+  background-color: var(--dial-pad-key-hover);
+}
+
+.call-controls {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.call-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-direction: row;
+  justify-content: space-between;
+  padding: 1rem 0;
+}
+
+.call-button, .hangup-button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  min-width: 150px;
+  font-weight: bold;
+}
+
+.call-button {
+  background-color: var(--call-btn-bg);
+  color: var(--call-btn-text);
+}
+
+.call-button:hover:not(:disabled) {
+  background-color: var(--call-btn-hover);
+}
+
+.call-button:disabled {
+  background-color: var(--disabled-btn-bg);
+  color: var(--disabled-btn-text);
+  cursor: not-allowed;
+}
+
+.hangup-button {
+  background-color: var(--hangup-btn-bg);
+  color: var(--hangup-btn-text);
+}
+
+.hangup-button:hover {
+  background-color: var(--hangup-btn-hover);
+}
+
+.call-history {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.call-history h2 {
+  border-bottom: 1px solid var(--history-border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.no-history {
+  text-align: center;
+  color: var(--text-color);
+  font-style: italic;
+  padding: 2rem;
+  opacity: 0.7;
+}
+
+.history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--history-border);
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.direction {
+  font-weight: bold;
+}
+
+.direction.outgoing {
+  color: var(--connected-color);
+}
+
+.direction.incoming {
+  color: #007bff;
+}
+
+.number {
+  font-weight: 500;
+}
+
+.history-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.time {
+  color: var(--text-color);
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.status {
+  font-size: 0.8rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.status.completed {
+  background-color: var(--completed-bg);
+  color: var(--completed-text);
+}
+
+.status.missed {
+  background-color: var(--missed-bg);
+  color: var(--missed-text);
+}
+
+.status.rejected {
+  background-color: var(--rejected-bg);
+  color: var(--rejected-text);
+}
+
+.status.in-progress {
+  background-color: var(--in-progress-bg);
+  color: var(--in-progress-text);
+}
+
+/* History Button */
+.history-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 1rem 0;
+}
+
+.history-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  width: 100%;
+  min-width: 150px;
+}
+
+.history-button:hover {
+  background-color: var(--status-bar-bg);
+}
+
+/* History Screen */
+.history-screen {
+  text-align: left;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  gap: 1rem;
+}
+
+.history-header h2 {
+  margin: 0;
+}
+
+.back-button {
+  padding: 0.5rem 1rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.back-button:hover {
+  background-color: var(--status-bar-bg);
+}
+
+.history-filter {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.history-filter button {
+  padding: 0.5rem 1rem;
+  background-color: var(--input-bg);
+  color: var(--text-color);
+  border: 1px solid var(--input-border);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.history-filter button.active {
+  background-color: #007bff;
+  color: white;
+}
+
+.history-filter button:hover:not(.active) {
+  background-color: var(--status-bar-bg);
+}
+
+.history-list {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--history-border);
+}
+
+.history-item:last-child {
+  border-bottom: none;
+}
+
+.history-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.history-item-number {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.direction-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.direction-badge.incoming {
+  background-color: #007bff;
+  color: white;
+}
+
+.direction-badge.outgoing {
+  background-color: var(--connected-color);
+  color: white;
+}
+
+.history-item-status {
+  display: flex;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.status-badge.completed {
+  background-color: var(--completed-bg);
+  color: var(--completed-text);
+}
+
+.status-badge.missed {
+  background-color: var(--missed-bg);
+  color: var(--missed-text);
+}
+
+.status-badge.rejected {
+  background-color: var(--rejected-bg);
+  color: var(--rejected-text);
+}
+
+.status-badge.in-progress {
+  background-color: var(--in-progress-bg);
+  color: var(--in-progress-text);
+}
+
+.history-item-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.25rem;
+}
+
+.history-item-date {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.history-item-duration {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.empty-history {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-color);
+  opacity: 0.7;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+  .voip-container {
+    min-width: 460px;
+    padding: 1rem;
+  }
+  
+  .status-bar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .history-item {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .history-meta {
+    align-items: flex-start;
+  }
+  
+  .history-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .history-item-time {
+    align-items: flex-start;
+  }
+}
