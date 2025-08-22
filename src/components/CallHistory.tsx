@@ -3,17 +3,19 @@ interface CallHistoryItem {
   number: string;
   direction: 'incoming' | 'outgoing';
   status: 'completed' | 'missed' | 'rejected' | 'in-progress';
-  timestamp: Date;
+  timestamp: Date | string;
   duration?: number;
 }
 
 interface CallHistoryProps {
   callHistory: CallHistoryItem[];
+  onCall?: (number: string) => void;
 }
 
-export const CallHistory = ({ callHistory }: CallHistoryProps) => {
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+export const CallHistory = ({ callHistory, onCall }: CallHistoryProps) => {
+  const formatTime = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -24,7 +26,12 @@ export const CallHistory = ({ callHistory }: CallHistoryProps) => {
       ) : (
         <ul className="history-list">
           {callHistory.map((call) => (
-            <li key={call.id} className="history-item">
+            <li 
+              key={call.id} 
+              className="history-item"
+              onClick={() => onCall && onCall(call.number)}
+              style={{ cursor: onCall ? 'pointer' : 'default' }}
+            >
               <div className="history-details">
                 <span className={`direction ${call.direction}`}>
                   {call.direction === 'outgoing' ? '↑' : '↓'}

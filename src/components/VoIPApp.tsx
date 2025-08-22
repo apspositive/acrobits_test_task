@@ -36,7 +36,14 @@ export const VoIPApp = () => {
   const [isOnHold, setIsOnHold] = useState(false);
   
   // Call history
-  const [callHistory, setCallHistory] = useState<CallHistoryItem[]>([]);
+  const [callHistory, setCallHistory] = useState<CallHistoryItem[]>(() => {
+    const savedHistory = localStorage.getItem('callHistory');
+    return savedHistory ? JSON.parse(savedHistory) : [];
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('callHistory', JSON.stringify(callHistory));
+  }, [callHistory]);
   
   // Initialize SIP service
   useEffect(() => {
@@ -60,7 +67,11 @@ export const VoIPApp = () => {
     
     // Set up call history listener
     sipService.setOnCallHistoryUpdate((call) => {
-      setCallHistory(prev => [call, ...prev]);
+      setCallHistory(prev => {
+        const newHistory = [call, ...prev];
+        localStorage.setItem('callHistory', JSON.stringify(newHistory));
+        return newHistory;
+      });
     });
     
     // Initialize SIP service
@@ -103,7 +114,7 @@ export const VoIPApp = () => {
             onHoldToggle={toggleHold}
             isMuted={isMuted}
             isOnHold={isOnHold}
-            callStartTime={sipService.getCallDuration()}
+            callStartTime={sipService.getCallStartTime()}
             isConnected={isConnected}
             isRegistered={isRegistered}
             isCalling={isCalling}
@@ -114,6 +125,7 @@ export const VoIPApp = () => {
           <HistoryScreen 
             callHistory={callHistory}
             onBack={() => setCurrentScreen('main')}
+            onCall={setPhoneNumber}
           />
         ) : (
           <>
@@ -155,7 +167,10 @@ export const VoIPApp = () => {
             </div>
             
             {/* Call History */}
-            <CallHistory callHistory={callHistory} />
+            <CallHistory callHistory={callHistory} onCall={(number) => {
+              setPhoneNumber(number);
+              setCurrentScreen('main');
+            }} />
           </>
         )}
       </ThemeProvider>

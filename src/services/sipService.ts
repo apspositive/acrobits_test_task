@@ -7,7 +7,7 @@ export interface CallHistoryItem {
   number: string;
   direction: 'incoming' | 'outgoing';
   status: 'completed' | 'missed' | 'rejected' | 'in-progress';
-  timestamp: Date;
+  timestamp: Date | string;
   duration?: number;
 }
 
@@ -260,6 +260,11 @@ export class SipService {
   // Get current state
   public getState(): SipServiceState {
     return { ...this.state };
+  }
+  
+  // Get call start time
+  public getCallStartTime(): number {
+    return this.callStartTime;
   }
   
   // Get call duration

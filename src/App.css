@@ -397,16 +397,32 @@ body *::after {
   flex-direction: row;
   justify-content: space-between;
   padding: 1rem 0;
+  align-items: center;
 }
 
 .control-button {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  border-radius: 2rem;
   font-size: 1rem;
-  min-width: 80px;
-  height: 50px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 100px;
+}
+
+.call-duration {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+  margin: 0 1rem;
+}
+
+.call-duration-display {
+  font-size: 1.2rem;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
 }
 
 .call-button {

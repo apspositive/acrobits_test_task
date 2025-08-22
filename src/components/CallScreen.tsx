@@ -67,7 +67,6 @@ export const CallScreen = ({
       
       <div className="callee-info">
         <div className="callee-number">{calleeNumber}</div>
-        <div className="call-duration">{formatDuration(callDuration)}</div>
       </div>
       
       <div className="call-status">
@@ -86,6 +85,7 @@ export const CallScreen = ({
         isOnHold={isOnHold}
         onMuteToggle={onMuteToggle}
         onHoldToggle={onHoldToggle}
+        callDuration={callDuration}
       />
     </div>
   );

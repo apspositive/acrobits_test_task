@@ -4,9 +4,10 @@ import type { CallHistoryItem } from '../services/sipService';
 interface HistoryScreenProps {
   callHistory: CallHistoryItem[];
   onBack: () => void;
+  onCall?: (number: string) => void;
 }
 
-export const HistoryScreen = ({ callHistory, onBack }: HistoryScreenProps) => {
+export const HistoryScreen = ({ callHistory, onBack, onCall }: HistoryScreenProps) => {
   const [filter, setFilter] = useState<'all' | 'incoming' | 'outgoing'>('all');
   
   const filteredHistory = callHistory.filter(call => 
@@ -19,13 +20,14 @@ export const HistoryScreen = ({ callHistory, onBack }: HistoryScreenProps) => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
   
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (date: Date | string) => {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
   
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | string) => {
     const today = new Date();
-    const callDate = new Date(date);
+    const callDate = typeof date === 'string' ? new Date(date) : date;
     
     if (callDate.toDateString() === today.toDateString()) {
       return 'Today';
@@ -71,7 +73,17 @@ export const HistoryScreen = ({ callHistory, onBack }: HistoryScreenProps) => {
           </div>
         ) : (
           filteredHistory.map(call => (
-            <div key={call.id} className="history-item">
+            <div 
+              key={call.id} 
+              className="history-item"
+              onClick={() => {
+                if (onCall) {
+                  onCall(call.number);
+                  onBack(); // Redirect to main screen
+                }
+              }}
+              style={{ cursor: onCall ? 'pointer' : 'default' }}
+            >
               <div className="history-item-info">
                 <div className="history-item-number">
                   {call.number}

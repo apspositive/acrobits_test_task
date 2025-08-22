@@ -10,6 +10,7 @@ interface CallControlsProps {
   isOnHold?: boolean;
   onMuteToggle?: () => void;
   onHoldToggle?: () => void;
+  callDuration?: number;
 }
 
 export const CallControls = ({ 
@@ -23,7 +24,8 @@ export const CallControls = ({
   isMuted = false,
   isOnHold = false,
   onMuteToggle,
-  onHoldToggle
+  onHoldToggle,
+  callDuration = 0
 }: CallControlsProps) => {
   return (
     <div className="call-controls">
@@ -36,6 +38,9 @@ export const CallControls = ({
           >
             {isMuted ? 'Unmute' : 'Mute'}
           </button>
+          <div className="call-duration-display">
+            {Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}
+          </div>
           <button 
             className={`control-button hold-button ${isOnHold ? 'active' : ''}`}
             onClick={onHoldToggle}
