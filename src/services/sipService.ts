@@ -13,16 +13,8 @@ import sipConfig from '../sipConfig';
 import { audioService } from './audioService';
 
 // Types
-import type { CallDirection, CallStatus } from '../helpers/types';
-
-export interface CallHistoryItem {
-  id: string;
-  number: string;
-  direction: CallDirection;
-  status: CallStatus;
-  timestamp: Date | string;
-  duration?: number;
-}
+import type { CallHistoryItem } from '../store/callHistorySlice';
+import type { CallStatus } from '../helpers/types';
 
 export interface SipServiceState {
   isConnected: boolean;
@@ -171,27 +163,24 @@ export class SipService {
             console.log('Incoming call state changed:', state);
             
             // If this invitation has been accepted and became our session, 
-            // we don't need to handle state changes here anymore
-            if (this.session === invitation && state === SessionState.Established) {
-              // The acceptIncomingCall method already handled the state update
+            // we don't need to handle state changes here anymore as the session
+            // will have its own state change listener
+            if (this.session === invitation) {
+              console.log('Invitation has become session, deferring to session state handler');
               return;
             }
             
             switch (state) {
               case SessionState.Established:
                 // This should only happen if the call was auto-accepted (which we don't do)
-                this.callStartTime = Date.now();
-                this.updateState({
-                  isCalling: false,
-                  isInCall: true,
-                  callStatus: 'In call',
-                  isMuted: false,
-                  isOnHold: false
-                });
+                // We should not set callStartTime here as it interferes with proper session handling
+                console.log('Unexpected: Invitation state changed to Established before acceptance');
                 break;
               case SessionState.Terminated:
                 {
+                  console.log('Calculating duration, callStartTime:', this.callStartTime, 'current time:', Date.now());
                   const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
+                  console.log('Calculated duration:', duration);
                   this.updateState({
                     isCalling: false,
                     isInCall: false,
@@ -201,7 +190,7 @@ export class SipService {
                   });
                   
                   // Determine call status based on whether it was established
-                  let callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = 'completed';
+                  let callStatus: CallStatus = 'completed';
                   if (!this.callStartTime) {
                     // If never established, determine if it was rejected or missed
                     // For incoming calls, if terminated before established, it's usually rejected
@@ -214,7 +203,7 @@ export class SipService {
                     number: invitation.remoteIdentity.uri.user || 'Unknown',
                     direction: 'incoming',
                     status: callStatus,
-                    timestamp: new Date(),
+                    timestamp: new Date().toISOString(),
                     duration: callStatus === 'completed' ? duration : undefined
                   }));
                   
@@ -303,17 +292,23 @@ export class SipService {
         
         switch (state) {
           case SessionState.Established:
+            console.log('Session established, setting callStartTime to:', Date.now());
             this.callStartTime = Date.now();
+            console.log('callStartTime is now:', this.callStartTime);
             this.updateState({
               isCalling: false,
               isInCall: true,
-              callStatus: 'In call'
+              callStatus: 'In call',
+              isMuted: false,
+              isOnHold: false
             });
             break;
           case SessionState.Terminated:
             {
               console.log('Call terminated, current call start time:', this.callStartTime);
+              console.log('Calculating duration, callStartTime:', this.callStartTime, 'current time:', Date.now());
               const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
+              console.log('Calculated duration:', duration);
               this.updateState({
                 isCalling: false,
                 isInCall: false,
@@ -325,7 +320,7 @@ export class SipService {
               
               // Add to call history
               // Determine call status based on whether the call was established
-              let callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = 'completed';
+              let callStatus: CallStatus = 'completed';
               
               // If the session was never established (callStartTime is 0), it's a rejected call
               // Also mark as rejected if terminated by remote party after establishment
@@ -397,7 +392,7 @@ export class SipService {
           number: callerNumber,
           direction: 'incoming',
           status: 'rejected',
-          timestamp: new Date()
+          timestamp: new Date().toISOString()
         };
         
         // Dispatch to Redux store
@@ -452,7 +447,7 @@ export class SipService {
         // Add to call history if this was an outgoing call
         if (this.session instanceof Inviter) {
           const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
-          const callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = wasCallRejected ? 'rejected' : 'completed';
+          const callStatus: CallStatus = wasCallRejected ? 'rejected' : 'completed';
           
           const callHistoryItem: CallHistoryItem = {
             id: Date.now().toString(),
@@ -557,15 +552,83 @@ export class SipService {
         await this.incomingInvitation.accept();
         // Set the session to the invitation for proper call handling
         this.session = this.incomingInvitation;
+        
+        // Add state change listener to the session (which was the invitation)
+        this.session.stateChange.addListener((state: SessionState) => {
+          console.log('Session state changed after acceptance:', state);
+          
+          switch (state) {
+            case SessionState.Established:
+              // This should only happen if the call wasn't already established
+              if (!this.callStartTime) {
+                console.log('Session established for incoming call, setting callStartTime to:', Date.now());
+                this.callStartTime = Date.now();
+                console.log('callStartTime is now:', this.callStartTime);
+                this.updateState({
+                  isCalling: false,
+                  isInCall: true,
+                  callStatus: 'In call',
+                  isMuted: false,
+                  isOnHold: false
+                });
+              } else {
+                console.log('Session already established, callStartTime is:', this.callStartTime);
+              }
+              break;
+            case SessionState.Terminated:
+              {
+                console.log('Calculating duration for incoming call, callStartTime:', this.callStartTime, 'current time:', Date.now());
+                const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
+                console.log('Calculated duration for incoming call:', duration);
+                this.updateState({
+                  isCalling: false,
+                  isInCall: false,
+                  callStatus: 'Ready',
+                  isMuted: false,
+                  isOnHold: false
+                });
+                
+                // Determine call status based on whether the call was established
+                let callStatus: CallStatus = 'completed';
+                if (!this.callStartTime) {
+                  // If never established, it's rejected
+                  callStatus = 'rejected';
+                }
+                
+                // Add to call history
+                const callerNumber = this.session ? (this.session.remoteIdentity?.uri?.user || 'Unknown') : 'Unknown';
+                store.dispatch(addCall({
+                  id: Date.now().toString(),
+                  number: callerNumber,
+                  direction: 'incoming',
+                  status: callStatus,
+                  timestamp: new Date().toISOString(),
+                  duration: callStatus === 'completed' ? duration : undefined
+                }));
+                
+                // Stop ringtone and clear the session
+                audioService.stopRingtone();
+                this.session = null;
+                
+                // Reset call start time after processing
+                this.callStartTime = 0;
+              }
+              break;
+          }
+        });
+        
         // Stop ringtone and clear the incoming invitation as it's now the active session
         audioService.stopRingtone();
         this.incomingInvitation = null;
+        
         // Update state to reflect we're now in a call
-        this.callStartTime = Date.now();
+        // Note: We don't set callStartTime here because it should be set when the session is actually established
         this.updateState({
           isCalling: false,
           isInCall: true,
-          callStatus: 'In call'
+          callStatus: 'In call',
+          isMuted: false,
+          isOnHold: false
         });
       } catch (error) {
         console.error('Error accepting call:', error);
@@ -599,7 +662,7 @@ export class SipService {
           number: callerNumber,
           direction: 'incoming',
           status: 'rejected',
-          timestamp: new Date()
+          timestamp: new Date().toISOString()
         };
         
         // Dispatch to Redux store

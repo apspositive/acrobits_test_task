@@ -8,7 +8,7 @@ export interface CallHistoryItem {
   number: string;
   direction: CallDirection;
   status: CallStatus;
-  timestamp: Date | string;
+  timestamp: string;
   duration?: number;
 }
 

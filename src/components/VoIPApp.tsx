@@ -120,14 +120,6 @@ export const VoIPApp = () => {
     console.log('UI State - showCallScreen:', showCallScreen, 'incomingCall:', incomingCall);
   }, [sipState, showCallScreen, incomingCall]);
   
-  // Handle invalid call states (isInCall true but isCalling false)
-  useEffect(() => {
-    if (sipState.isInCall && !sipState.isCalling) {
-      console.log('Invalid call state detected: isInCall true but isCalling false. Ending call automatically.');
-      endCall();
-    }
-  }, [sipState.isInCall, sipState.isCalling, endCall]);
-  
   // ======================================================================
   // INCOMING CALL METHODS
   // ======================================================================
