@@ -8,6 +8,7 @@ import { CallHistory } from './CallHistory';
 import { CallScreen } from './CallScreen';
 import { HistoryScreen } from './HistoryScreen';
 import sipConfig from '../sipConfig';
+import { ThemeProvider } from './ThemeProvider';
 
 export const VoIPApp = () => {
   // State
@@ -93,69 +94,71 @@ export const VoIPApp = () => {
   
   return (
     <div className="voip-container">
-      {showCallScreen ? (
-        <CallScreen 
-          calleeNumber={phoneNumber}
-          onEndCall={endCall}
-          onMuteToggle={toggleMute}
-          onHoldToggle={toggleHold}
-          isMuted={isMuted}
-          isOnHold={isOnHold}
-          callStartTime={sipService.getCallDuration()}
-          isConnected={isConnected}
-          isRegistered={isRegistered}
-          isCalling={isCalling}
-          isInCall={isInCall}
-          onPlaceCall={placeCall}
-        />
-      ) : currentScreen === 'history' ? (
-        <HistoryScreen 
-          callHistory={callHistory}
-          onBack={() => setCurrentScreen('main')}
-        />
-      ) : (
-        <>
-          <h1>VoIP Application</h1>
-          
-          {/* Connection Status */}
-          <StatusBar isConnected={isConnected} isRegistered={isRegistered} />
-          
-          {/* Call Status */}
-          <div className="call-status">
-            {callStatus}
-          </div>
-          
-          {/* Phone Number Input and Dial Pad */}
-          <DialPad 
-            onNumberChange={setPhoneNumber}
-            currentNumber={phoneNumber}
-          />
-          
-          {/* Call Controls */}
-          <CallControls 
-            onPlaceCall={placeCall}
+      <ThemeProvider>
+        {showCallScreen ? (
+          <CallScreen 
+            calleeNumber={phoneNumber}
             onEndCall={endCall}
+            onMuteToggle={toggleMute}
+            onHoldToggle={toggleHold}
+            isMuted={isMuted}
+            isOnHold={isOnHold}
+            callStartTime={sipService.getCallDuration()}
+            isConnected={isConnected}
+            isRegistered={isRegistered}
             isCalling={isCalling}
             isInCall={isInCall}
-            isRegistered={isRegistered}
-            isConnected={isConnected}
-            phoneNumber={phoneNumber}
+            onPlaceCall={placeCall}
           />
-          
-          {/* History Button */}
-          <div className="history-button-container">
-            <button 
-              className="history-button"
-              onClick={() => setCurrentScreen('history')}
-            >
-              History Log
-            </button>
-          </div>
-          
-          {/* Call History */}
-          <CallHistory callHistory={callHistory} />
-        </>
-      )}
+        ) : currentScreen === 'history' ? (
+          <HistoryScreen 
+            callHistory={callHistory}
+            onBack={() => setCurrentScreen('main')}
+          />
+        ) : (
+          <>
+            <h1>VoIP Application</h1>
+            
+            {/* Connection Status */}
+            <StatusBar isConnected={isConnected} isRegistered={isRegistered} />
+            
+            {/* Call Status */}
+            <div className="call-status">
+              {callStatus}
+            </div>
+            
+            {/* Phone Number Input and Dial Pad */}
+            <DialPad 
+              onNumberChange={setPhoneNumber}
+              currentNumber={phoneNumber}
+            />
+            
+            {/* Call Controls */}
+            <CallControls 
+              onPlaceCall={placeCall}
+              onEndCall={endCall}
+              isCalling={isCalling}
+              isInCall={isInCall}
+              isRegistered={isRegistered}
+              isConnected={isConnected}
+              phoneNumber={phoneNumber}
+            />
+            
+            {/* History Button */}
+            <div className="history-button-container">
+              <button 
+                className="history-button"
+                onClick={() => setCurrentScreen('history')}
+              >
+                History Log
+              </button>
+            </div>
+            
+            {/* Call History */}
+            <CallHistory callHistory={callHistory} />
+          </>
+        )}
+      </ThemeProvider>
     </div>
   );
 };

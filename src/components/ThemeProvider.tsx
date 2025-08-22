@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode } from 'react';
+import { Sun, Moon } from 'lucide-react';
 
 interface ThemeProviderProps {
   children: ReactNode;
@@ -23,21 +24,11 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     <div>
       {children}
       <button 
+        className="theme-toggle"
         onClick={toggleTheme}
-        style={{
-          position: 'fixed',
-          top: '1rem',
-          right: '1rem',
-          padding: '0.5rem 1rem',
-          backgroundColor: 'var(--input-bg)',
-          color: 'var(--text-color)',
-          border: '1px solid var(--border-color)',
-          borderRadius: '4px',
-          cursor: 'pointer',
-          zIndex: 1000
-        }}
+        aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
       >
-        Switch to {theme === 'light' ? 'Dark' : 'Light'} Theme
+        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
       </button>
     </div>
   );
