@@ -260,6 +260,7 @@ export class SipService {
               let callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = 'completed';
               
               // If the session was never established (callStartTime is 0), it's a rejected call
+              // Also mark as rejected if terminated by remote party after establishment
               if (!this.callStartTime) {
                 callStatus = 'rejected';
               }

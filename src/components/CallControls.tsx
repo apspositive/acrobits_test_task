@@ -26,6 +26,12 @@ export const CallControls = ({
   
   // Calculate call duration
   const callDuration = callStartTime > 0 ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
+  
+  // Validate phone number (min 4 digits, numbers only)
+  const isValidPhoneNumber = (number: string): boolean => {
+    return /^\d{4,}$/.test(number);
+  };
+  
   // Define toggle functions
   const onMuteToggle = () => {
     // This will be implemented in the parent component
@@ -61,7 +67,7 @@ export const CallControls = ({
       {!isInCall && !isCalling ? (
         <button 
           onClick={onPlaceCall}
-          disabled={!isRegistered || !isConnected || !phoneNumber}
+          disabled={!isRegistered || !isConnected || !phoneNumber || !isValidPhoneNumber(phoneNumber)}
           className="call-button"
         >
           Call

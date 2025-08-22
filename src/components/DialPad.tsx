@@ -17,19 +17,24 @@ export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPad
     onNumberChange(currentNumber.slice(0, -1));
   };
 
+  // Validate phone number (min 4 digits, numbers only)
+  const isValidPhoneNumber = (number: string): boolean => {
+    return /^\d{4,}$/.test(number);
+  };
+
   return (
     <div className="phone-input-container">
       <input
         type="tel"
         value={currentNumber}
-        onChange={(e) => onNumberChange(e.target.value)}
+        onChange={(e) => onNumberChange(e.target.value.replace(/[^0-9]/g, ''))}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && onEnterPress) {
+          if (e.key === 'Enter' && onEnterPress && isValidPhoneNumber(currentNumber)) {
             e.preventDefault();
             onEnterPress();
           }
         }}
-        placeholder="Enter phone number"
+        placeholder="Enter phone number (min 4 digits)"
         className="phone-input"
         pattern="[0-9]*"
         inputMode="tel"
@@ -68,9 +73,10 @@ export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPad
               className="dial-pad-call large"
               onClick={() => {
                 setShowDialPad(false);
-                // Call the onEnterPress function if provided
-                if (onEnterPress) onEnterPress();
+                // Call the onEnterPress function if provided and validation passes
+                if (onEnterPress && isValidPhoneNumber(currentNumber)) onEnterPress();
               }}
+              disabled={!isValidPhoneNumber(currentNumber)}
             >
               Call
             </button>

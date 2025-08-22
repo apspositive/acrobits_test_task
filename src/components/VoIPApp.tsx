@@ -62,9 +62,17 @@ export const VoIPApp = () => {
     };
   }, [sipService, dispatch]);
   
+  // Validate phone number (min 4 digits, numbers only)
+  const isValidPhoneNumber = (number: string): boolean => {
+    return /^\d{4,}$/.test(number);
+  };
+  
   // Place outgoing call
   const placeCall = async () => {
-    await sipService.placeCall(phoneNumber);
+    // Only place call if validation passes
+    if (isValidPhoneNumber(phoneNumber)) {
+      await sipService.placeCall(phoneNumber);
+    }
   };
   
   // End current call
@@ -168,7 +176,10 @@ export const VoIPApp = () => {
             
             {/* Phone Number Input and Dial Pad */}
             <DialPad 
-              onNumberChange={setPhoneNumber}
+              onNumberChange={(number) => {
+                // Only allow numbers in the input
+                setPhoneNumber(number.replace(/[^0-9]/g, ''));
+              }}
               onEnterPress={placeCall}
               currentNumber={phoneNumber}
             />
