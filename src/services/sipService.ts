@@ -145,18 +145,32 @@ export class SipService {
                     isMuted: false,
                     isOnHold: false
                   });
-                  // Reset call start time
-                  this.callStartTime = 0;
+                  
+                  // Determine call status based on whether it was established
+                  let callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = 'completed';
+                  if (!this.callStartTime) {
+                    // If never established, determine if it was rejected or missed
+                    // For incoming calls, if terminated before established, it's usually rejected
+                    callStatus = 'rejected';
+                  }
                   
                   // Add to call history
                   store.dispatch(addCall({
                     id: Date.now().toString(),
                     number: invitation.remoteIdentity.uri.user || 'Unknown',
                     direction: 'incoming',
-                    status: 'completed',
+                    status: callStatus,
                     timestamp: new Date(),
-                    duration
+                    duration: callStatus === 'completed' ? duration : undefined
                   }));
+                  
+                  // Clear invitation reference if it's still pointing to this invitation
+                  if (this.incomingInvitation === invitation) {
+                    this.incomingInvitation = null;
+                  }
+                  
+                  // Reset call start time after processing
+                  this.callStartTime = 0;
                 }
                 break;
             }
@@ -230,6 +244,7 @@ export class SipService {
             break;
           case SessionState.Terminated:
             {
+              console.log('Call terminated, current call start time:', this.callStartTime);
               const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
               this.updateState({
                 isCalling: false,
@@ -238,29 +253,35 @@ export class SipService {
                 isMuted: false,
                 isOnHold: false
               });
-              // Reset call start time
-              this.callStartTime = 0;
+              console.log('Updated Redux state after call termination');
               
               // Add to call history
-              // Determine call status based on session state
+              // Determine call status based on whether the call was established
               let callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = 'completed';
               
-              // If the session was never established, it's a missed call
+              // If the session was never established (callStartTime is 0), it's a rejected call
               if (!this.callStartTime) {
-                callStatus = 'missed';
+                callStatus = 'rejected';
               }
               
-              const completedCall: CallHistoryItem = {
+              const callHistoryItem: CallHistoryItem = {
                 id: Date.now().toString(),
                 number: phoneNumber,
                 direction: 'outgoing',
                 status: callStatus,
-                timestamp: new Date(),
+                timestamp: new Date().toISOString(),
                 duration: callStatus === 'completed' ? duration : undefined
               };
               
               // Dispatch to Redux store
-              store.dispatch(addCall(completedCall));
+              store.dispatch(addCall(callHistoryItem));
+              console.log('Added call to history:', callHistoryItem);
+              
+              // Clear session reference
+              this.session = null;
+              
+              // Reset call start time after processing
+              this.callStartTime = 0;
             }
             break;
         }
@@ -281,6 +302,7 @@ export class SipService {
   
   // End current call
   public async endCall() {
+    console.log('Ending call, session:', this.session, 'incomingInvitation:', this.incomingInvitation);
     // Check if this is an incoming call that needs to be rejected
     if (this.incomingInvitation && this.incomingInvitation.state === SessionState.Initial) {
       try {
@@ -303,6 +325,9 @@ export class SipService {
         
         // Dispatch to Redux store
         store.dispatch(addCall(rejectedCall));
+        
+        // Clear the incoming invitation
+        this.incomingInvitation = null;
       } catch (error) {
         console.error('Error rejecting call:', error);
       }
@@ -314,6 +339,7 @@ export class SipService {
         // Check if this is an incoming call (Invitation) or outgoing call (Inviter)
         if (this.session instanceof Invitation) {
           // This is an incoming call (Invitation)
+          console.log('Rejecting incoming call, state:', this.session.state);
           if (this.session.state === SessionState.Established) {
             await this.session.bye();
           } else if (this.session.state === SessionState.Initial) {
@@ -321,15 +347,21 @@ export class SipService {
           }
         } else {
           // This is an outgoing call (Inviter)
-          if (this.session.state === SessionState.Established || this.session.state === SessionState.Initial) {
+          console.log('Ending outgoing call, state:', this.session.state);
+          if (this.session.state === SessionState.Established) {
             await this.session.bye();
-          } else {
+          } else if (this.session.state === SessionState.Initial) {
+            // For initial state, we should cancel the call
             this.session.cancel();
           }
+          // For other states, we just need to update the UI state
         }
       } catch (error) {
         console.error('Error ending call:', error);
       } finally {
+        // Determine if this is a rejected call (never established)
+        const wasCallRejected = !this.callStartTime && this.session instanceof Inviter;
+        
         // Force state update
         this.updateState({
           isCalling: false,
@@ -338,10 +370,40 @@ export class SipService {
           isMuted: false,
           isOnHold: false
         });
+        
+        // Add to call history if this was an outgoing call
+        if (this.session instanceof Inviter) {
+          const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
+          const callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = wasCallRejected ? 'rejected' : 'completed';
+          
+          const callHistoryItem: CallHistoryItem = {
+            id: Date.now().toString(),
+            number: this.session.remoteIdentity.uri.user || 'Unknown',
+            direction: 'outgoing',
+            status: callStatus,
+            timestamp: new Date().toISOString(),
+            duration: callStatus === 'completed' ? duration : undefined
+          };
+          
+          // Dispatch to Redux store
+          store.dispatch(addCall(callHistoryItem));
+          console.log('Added call to history:', callHistoryItem);
+        }
+        
         // Reset session and call start time
         this.session = null;
         this.callStartTime = 0;
       }
+    } else {
+      // If there's no session, still update the state to ensure UI is consistent
+      console.log('No session found, updating state anyway');
+      this.updateState({
+        isCalling: false,
+        isInCall: false,
+        callStatus: 'Ready',
+        isMuted: false,
+        isOnHold: false
+      });
     }
   }
   public toggleMute() {
@@ -485,9 +547,12 @@ export class SipService {
   
   // Update state and notify listeners
   private updateState(updates: Partial<SipServiceState>) {
+    console.log('Updating SIP state:', updates);
     this.state = { ...this.state, ...updates };
+    console.log('New SIP state:', this.state);
     // Dispatch to Redux store
     store.dispatch(updateSipState(updates));
+    console.log('Dispatched to Redux store');
   }
 }
 

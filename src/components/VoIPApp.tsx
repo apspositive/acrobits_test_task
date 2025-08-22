@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { SipService } from '../services/sipService';
 import { StatusBar } from './StatusBar';
@@ -62,8 +62,21 @@ export const VoIPApp = () => {
     };
   }, [sipService, dispatch]);
   
+  // Place outgoing call
+  const placeCall = async () => {
+    await sipService.placeCall(phoneNumber);
+  };
+  
+  // End current call
+  const endCall = useCallback(async () => {
+    console.log('Ending call from UI');
+    await sipService.endCall();
+    dispatch(resetCallState());
+  }, [sipService, dispatch]);
+  
   // Update UI state based on Redux state
   useEffect(() => {
+    console.log('SIP State updated:', sipState);
     // Handle incoming call notifications
     if (sipState.isCalling && !sipState.isInCall && sipState.callStatus.startsWith('Incoming call from')) {
       setIncomingCall(true);
@@ -74,21 +87,20 @@ export const VoIPApp = () => {
     // Show call screen when in call or calling (but not for incoming call notifications)
     if (sipState.isInCall || (sipState.isCalling && !sipState.callStatus.startsWith('Incoming call from'))) {
       setShowCallScreen(true);
-    } else if (!sipState.isInCall && (!sipState.isCalling || !sipState.callStatus.startsWith('Incoming call from'))) {
+    } else {
       setShowCallScreen(false);
     }
-  }, [sipState]);
+    
+    console.log('UI State - showCallScreen:', showCallScreen, 'incomingCall:', incomingCall);
+  }, [sipState, showCallScreen, incomingCall]);
   
-  // Place outgoing call
-  const placeCall = async () => {
-    await sipService.placeCall(phoneNumber);
-  };
-  
-  // End current call
-  const endCall = async () => {
-    await sipService.endCall();
-    dispatch(resetCallState());
-  };
+  // Handle invalid call states (isInCall true but isCalling false)
+  useEffect(() => {
+    if (sipState.isInCall && !sipState.isCalling) {
+      console.log('Invalid call state detected: isInCall true but isCalling false. Ending call automatically.');
+      endCall();
+    }
+  }, [sipState.isInCall, sipState.isCalling, endCall]);
   
   // Accept incoming call
   const acceptCall = async () => {
