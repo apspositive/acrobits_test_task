@@ -1,68 +1,132 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
-}
-
-@media (prefers-color-scheme: light) {
+/* Custom styles that extend Tailwind */
+@layer base {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    --bg-color: #ffffff;
+    --text-color: #333333;
+    --container-bg: #ffffff;
+    --border-color: #ccc;
+    --input-bg: #ffffff;
+    --input-border: #aaa;
+    --disabled-bg: #f0f0f0;
+    --status-bar-bg: #f0f0f0;
+    --history-border: #ddd;
+    
+    /* Button colors */
+    --call-btn-bg: #28a745;
+    --call-btn-hover: #218838;
+    --call-btn-text: #ffffff;
+    --hangup-btn-bg: #dc3545;
+    --ignore-btn-bg: #9a7f26;
+    --hangup-btn-hover: #c82333;
+    --hangup-btn-text: #ffffff;
+    --disabled-btn-bg: #6c757d;
+    --disabled-btn-text: #ffffff;
+    
+    /* Status colors */
+    --connected-color: #28a745;
+    --connected-bg: #e6f4e6;
+    --disconnected-color: #dc3545;
+    --disconnected-bg: #fce6e6;
+    --registered-color: #28a745;
+    --registered-bg: #e6f4e6;
+    --unregistered-color: #ffc107;
+    --unregistered-bg: #fff3cd;
+    
+    /* History status colors */
+    --completed-bg: #d4edda;
+    --completed-text: #155724;
+    --missed-bg: #f8d7da;
+    --missed-text: #721c24;
+    --rejected-bg: #fff3cd;
+    --rejected-text: #856404;
+    --in-progress-bg: #cce5ff;
+    --in-progress-text: #004085;
+    
+    /* Dial pad colors */
+    --dial-pad-bg: #f8f8f8;
+    --dial-pad-key-bg: #ffffff;
+    --dial-pad-key-border: #ccc;
+    --dial-pad-key-hover: #f0f0f0;
+
+    --dial-pad-icon-filter: none;
   }
-  a:hover {
-    color: #747bff;
+  
+  [data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --text-color: #e0e0e0;
+    --container-bg: #2d2d2d;
+    --border-color: #444;
+    --input-bg: #3a3a3a;
+    --input-border: #555;
+    --disabled-bg: #333;
+    --status-bar-bg: #3a3a3a;
+    --history-border: #444;
+    
+    /* Button colors */
+    --call-btn-bg: #28a745;
+    --call-btn-hover: #218838;
+    --call-btn-text: #ffffff;
+    --hangup-btn-bg: #dc3545;
+    --ignore-btn-bg: #f0b802;
+    --hangup-btn-hover: #c82333;
+    --hangup-btn-text: #ffffff;
+    --disabled-btn-bg: #6c757d;
+    --disabled-btn-text: #ffffff;
+    
+    /* Status colors */
+    --connected-color: #4cd174;
+    --connected-bg: #1c3120;
+    --disconnected-color: #dc3545;
+    --disconnected-bg: #311c1c;
+    --registered-color: #4cd174;
+    --registered-bg: #1c3120;
+    --unregistered-color: #ffc107;
+    --unregistered-bg: #312c1c;
+    
+    /* History status colors */
+    --completed-bg: #1c3120;
+    --completed-text: #a0d6a0;
+    --missed-bg: #311c1c;
+    --missed-text: #e0a0a0;
+    --rejected-bg: #312c1c;
+    --rejected-text: #d6c6a0;
+    --in-progress-bg: #1c2c31;
+    --in-progress-text: #a0c6e0;
+    
+    /* Dial pad colors */
+    --dial-pad-bg: #3a3a3a;
+    --dial-pad-key-bg: #444;
+    --dial-pad-key-border: #555;
+    --dial-pad-key-hover: #555;
+
+    --dial-pad-icon-filter: invert(100%);
   }
-  button {
-    background-color: #f9f9f9;
+  
+  body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+    box-sizing: border-box;
+  }
+  
+  body *,
+  body *::before,
+  body *::after {
+    box-sizing: inherit;
+    transition: background-color 0.3s, color 0.3s, opacity 0.3s;
+  }
+  
+  #root {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+    min-width: 460px;
   }
 }
+
+/* We'll move component styles to individual components to avoid @apply issues */

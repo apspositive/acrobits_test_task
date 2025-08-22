@@ -1,5 +1,5 @@
 import { VoIPApp } from './components/VoIPApp'
-import './App.css'
+import './index.css'
 
 function App() {
   return (

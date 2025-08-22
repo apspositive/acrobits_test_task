@@ -42,21 +42,21 @@ export const CallControls = ({
   };
   
   return (
-    <div className="call-controls">
+    <div className="flex justify-center flex-col">
       {/* Show mute and hold buttons only during a call */}
       {(isInCall || isCalling) && (
-        <div className="call-options">
+        <div className="flex gap-2 flex-row justify-between p-4 items-center">
           <button 
-            className={`control-button mute-button ${isMuted ? 'active' : ''}`}
+            className={`p-3 border-none rounded-full text-base font-medium cursor-pointer transition-all min-w-[100px] ${isMuted ? 'bg-blue-500 text-white' : 'bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)]'}`}
             onClick={onMuteToggle}
           >
             {isMuted ? 'Unmute' : 'Mute'}
           </button>
-          <div className="call-duration-display">
+          <div className="text-xl font-medium min-w-[60px] text-center">
             {Math.floor(callDuration / 60).toString().padStart(2, '0')}:{(callDuration % 60).toString().padStart(2, '0')}
           </div>
           <button 
-            className={`control-button hold-button ${isOnHold ? 'active' : ''}`}
+            className={`p-3 border-none rounded-full text-base font-medium cursor-pointer transition-all min-w-[100px] ${isOnHold ? 'bg-blue-500 text-white' : 'bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)]'}`}
             onClick={onHoldToggle}
           >
             {isOnHold ? 'Resume' : 'Hold'}
@@ -68,14 +68,14 @@ export const CallControls = ({
         <button 
           onClick={onPlaceCall}
           disabled={!isRegistered || !isConnected || !phoneNumber || !isValidPhoneNumber(phoneNumber)}
-          className="call-button"
+          className="p-4 text-xl border-none rounded-full cursor-pointer w-full min-w-[150px] font-bold h-[50px] bg-[var(--call-btn-bg)] text-[var(--call-btn-text)] disabled:bg-[var(--disabled-btn-bg)] disabled:text-[var(--disabled-btn-text)] disabled:cursor-not-allowed"
         >
           Call
         </button>
       ) : (
         <button 
           onClick={onEndCall}
-          className="hangup-button"
+          className="p-4 text-xl border-none rounded-full cursor-pointer w-full min-w-[150px] font-bold h-[50px] bg-[var(--hangup-btn-bg)] text-[var(--hangup-btn-text)]"
         >
           Hang Up
         </button>

@@ -48,19 +48,19 @@ export const CallScreen = ({
   }, [callStartTime]);
 
   return (
-    <div className="call-screen">
+    <div className="text-center flex-1 flex flex-col min-h-[640px] max-h-[100svh]">
       {/* Connection Status */}
       <StatusBar isConnected={isConnected} isRegistered={isRegistered} />
       
-      <div className="call-header">
-        <h2>Calling</h2>
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold">Calling</h2>
       </div>
       
-      <div className="callee-info">
-        <div className="callee-number">{calleeNumber}</div>
+      <div className="mb-8">
+        <div className="text-3xl font-bold">{calleeNumber}</div>
       </div>
       
-      <div className="call-status">
+      <div className="p-4 my-4 bg-[var(--status-bar-bg)] rounded font-medium min-h-8 flex items-center justify-center">
         {isOnHold ? 'On Hold' : isMuted ? 'Muted' : `Connected (${Math.floor(callDuration / 60).toString().padStart(2, '0')}:${(callDuration % 60).toString().padStart(2, '0')})`}
       </div>
       

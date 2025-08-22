@@ -139,7 +139,7 @@ export const VoIPApp = () => {
   };
   
   return (
-    <div className="voip-container">
+    <div className="absolute top-[100px] min-w-[460px] max-w-[500px] w-full min-h-[640px] max-h-[100svh] mx-auto p-8 font-sans bg-[var(--container-bg)] rounded-lg shadow-md transition-all flex flex-col">
       <ThemeProvider>
         {incomingCall ? (
           <IncomingCallScreen
@@ -164,13 +164,13 @@ export const VoIPApp = () => {
           />
         ) : (
           <>
-            <h1>VoIP Application</h1>
+            <h1 className="text-3xl font-bold mb-4">VoIP Application</h1>
             
             {/* Connection Status */}
             <StatusBar isConnected={isConnected} isRegistered={isRegistered} />
             
             {/* Call Status */}
-            <div className="call-status">
+            <div className="p-4 my-4 bg-[var(--status-bar-bg)] rounded font-medium min-h-8 flex items-center justify-center">
               {callStatus}
             </div>
             
@@ -192,9 +192,9 @@ export const VoIPApp = () => {
             />
             
             {/* History Button */}
-            <div className="history-button-container">
+            <div className="flex justify-center my-4">
               <button 
-                className="history-button"
+                className="p-3 text-base bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)] rounded-full cursor-pointer w-full min-w-[150px] h-[50px]"
                 onClick={() => setCurrentScreen('history')}
               >
                 History Log

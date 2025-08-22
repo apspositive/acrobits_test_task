@@ -24,7 +24,7 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     <div>
       {children}
       <button 
-        className="theme-toggle"
+        className="fixed top-4 right-4 p-2 bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)] rounded-full cursor-pointer z-50"
         onClick={toggleTheme}
         aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}
       >

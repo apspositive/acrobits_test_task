@@ -29,19 +29,30 @@ export const IncomingCallScreen = ({
   }, [timeLeft, onIgnore]);
 
   return (
-    <div className="incoming-call-screen">
-      <div className="screen-content">
-        <h2>Incoming Call</h2>
-        <div className="caller-number">{callerNumber}</div>
-        <div className="auto-reject-timer">Auto-reject in {timeLeft}s</div>
-        <div className="screen-actions">
-          <button className="accept-button" onClick={onAccept}>
+    <div className="flex items-center justify-center min-h-[640px] max-h-[100svh]">
+      <div className="text-center p-8 bg-[var(--container-bg)] rounded-lg shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-4">Incoming Call</h2>
+        <div className="text-3xl font-bold mb-4">{callerNumber}</div>
+        <div className="p-4 my-4 bg-[var(--status-bar-bg)] rounded font-medium">
+          Auto-reject in {timeLeft}s
+        </div>
+        <div className="flex justify-center gap-4 mt-8">
+          <button 
+            className="p-4 text-xl border-none rounded-full cursor-pointer w-full min-w-[100px] font-bold h-[50px] bg-green-500 text-white"
+            onClick={onAccept}
+          >
             Accept
           </button>
-          <button className="reject-button" onClick={onReject}>
+          <button 
+            className="p-4 text-xl border-none rounded-full cursor-pointer w-full min-w-[100px] font-bold h-[50px] bg-red-500 text-white"
+            onClick={onReject}
+          >
             Reject
           </button>
-          <button className="ignore-button" onClick={onIgnore}>
+          <button 
+            className="p-4 text-xl border-none rounded-full cursor-pointer w-full min-w-[100px] font-bold h-[50px] bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)]"
+            onClick={onIgnore}
+          >
             Ignore
           </button>
         </div>

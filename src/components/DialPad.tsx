@@ -23,7 +23,7 @@ export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPad
   };
 
   return (
-    <div className="phone-input-container">
+    <div className="relative w-full mb-4">
       <input
         type="tel"
         value={currentNumber}
@@ -35,42 +35,42 @@ export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPad
           }
         }}
         placeholder="Enter phone number (min 4 digits)"
-        className="phone-input"
+        className="w-full p-4 text-xl border-2 border-[var(--input-border)] rounded text-center bg-[var(--input-bg)] text-[var(--text-color)] box-border"
         pattern="[0-9]*"
         inputMode="tel"
       />
       <button 
-        className="input-icon"
+        className="absolute right-0 top-1/2 -translate-y-1/2 bg-transparent border-none cursor-pointer text-xl opacity-70 p-0 h-[50px] flex items-center justify-center"
         onClick={() => setShowDialPad(!showDialPad)}
         aria-label="Open dial pad"
       >
-        <img src="/src/assets/dialpad.svg" alt="Dial pad" className="dialpad-icon" />
+        <img src="/src/assets/dialpad.svg" alt="Dial pad" className="w-6 h-6 absolute right-4" />
       </button>
       
       {/* Virtual Dial Pad */}
       {showDialPad && (
-        <div className="dial-pad">
-          <div className="dial-pad-grid">
+        <div className="absolute top-full left-0 right-0 bg-[var(--dial-pad-bg)] border border-[var(--border-color)] rounded-lg shadow-lg z-[100] p-4 mt-2">
+          <div className="grid grid-cols-3 gap-2">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, '*', 0, '#'].map((key) => (
               <button
                 key={key}
-                className="dial-pad-key"
+                className="p-4 text-2xl bg-[var(--dial-pad-key-bg)] border border-[var(--dial-pad-key-border)] rounded-lg cursor-pointer text-center text-[var(--text-color)] h-[50px] flex items-center justify-center hover:bg-[var(--dial-pad-key-hover)]"
                 onClick={() => handleKeyPress(key.toString())}
               >
                 {key}
               </button>
             ))}
           </div>
-          <div className="dial-pad-actions">
+          <div className="grid grid-cols-3 gap-2 mt-2">
             <button
-              className="dial-pad-backspace small"
+              className="bg-red-600 text-white border-none rounded-lg p-4 text-base cursor-pointer h-[50px] flex items-center justify-center col-span-1 hover:bg-red-700"
               onClick={handleBackspace}
               aria-label="Backspace"
             >
               ⌫
             </button>
             <button
-              className="dial-pad-call large"
+              className="bg-[var(--call-btn-bg)] border-none rounded-lg p-4 text-base cursor-pointer text-[var(--call-btn-text)] h-[50px] flex items-center justify-center col-span-2 font-bold hover:bg-[var(--call-btn-hover)]"
               onClick={() => {
                 setShowDialPad(false);
                 // Call the onEnterPress function if provided and validation passes

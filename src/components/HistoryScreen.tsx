@@ -37,45 +37,48 @@ export const HistoryScreen = ({ callHistory, onBack, onCall }: HistoryScreenProp
   };
   
   return (
-    <div className="history-screen">
-      <div className="history-header">
-        <button className="back-button" onClick={onBack}>
+    <div className="text-left flex-1 flex flex-col min-h-[640px] max-h-[100svh]">
+      <div className="flex items-center mb-4 gap-4">
+        <button 
+          className="p-2 bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)] rounded cursor-pointer h-[50px]"
+          onClick={onBack}
+        >
           ← Back
         </button>
-        <h2>Call History</h2>
+        <h2 className="m-0">Call History</h2>
       </div>
       
-      <div className="history-filter">
+      <div className="flex gap-2 mb-4">
         <button 
-          className={filter === 'all' ? 'active' : ''}
+          className={`p-2 bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)] rounded cursor-pointer h-[50px] ${filter === 'all' ? 'bg-blue-500 text-white' : ''}`}
           onClick={() => setFilter('all')}
         >
           All
         </button>
         <button 
-          className={filter === 'incoming' ? 'active' : ''}
+          className={`p-2 bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)] rounded cursor-pointer h-[50px] ${filter === 'incoming' ? 'bg-blue-500 text-white' : ''}`}
           onClick={() => setFilter('incoming')}
         >
           Incoming
         </button>
         <button 
-          className={filter === 'outgoing' ? 'active' : ''}
+          className={`p-2 bg-[var(--input-bg)] text-[var(--text-color)] border border-[var(--input-border)] rounded cursor-pointer h-[50px] ${filter === 'outgoing' ? 'bg-blue-500 text-white' : ''}`}
           onClick={() => setFilter('outgoing')}
         >
           Outgoing
         </button>
       </div>
       
-      <div className="history-list">
+      <div className="max-h-[60vh] overflow-y-auto">
         {filteredHistory.length === 0 ? (
-          <div className="empty-history">
+          <div className="text-center p-8 text-[var(--text-color)] opacity-70">
             <p>No calls in history</p>
           </div>
         ) : (
           filteredHistory.map(call => (
             <div 
               key={call.id} 
-              className="history-item"
+              className="flex justify-between p-4 border-b border-[var(--history-border)]"
               onClick={() => {
                 if (onCall) {
                   onCall(call.number);
@@ -84,24 +87,24 @@ export const HistoryScreen = ({ callHistory, onBack, onCall }: HistoryScreenProp
               }}
               style={{ cursor: onCall ? 'pointer' : 'default' }}
             >
-              <div className="history-item-info">
-                <div className="history-item-number">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 text-lg font-medium">
                   {call.number}
-                  <span className={`direction-badge ${call.direction}`}>
+                  <span className={`p-1 rounded text-xs font-bold uppercase ${call.direction === 'incoming' ? 'bg-blue-500 text-white' : 'bg-[var(--connected-color)] text-white'}`}>
                     {call.direction === 'incoming' ? 'IN' : 'OUT'}
                   </span>
                 </div>
-                <div className="history-item-status">
-                  <span className={`status-badge ${call.status}`}>
+                <div className="flex items-center">
+                  <span className={`p-1 rounded text-xs uppercase ${call.status === 'completed' ? 'bg-[var(--completed-bg)] text-[var(--completed-text)]' : call.status === 'missed' ? 'bg-[var(--missed-bg)] text-[var(--missed-text)]' : call.status === 'rejected' ? 'bg-[var(--rejected-bg)] text-[var(--rejected-text)]' : 'bg-[var(--in-progress-bg)] text-[var(--in-progress-text)]'}`}>
                     {call.status}
                   </span>
                 </div>
               </div>
-              <div className="history-item-time">
+              <div className="flex flex-col items-end gap-1">
                 <div>{formatTime(call.timestamp)}</div>
-                <div className="history-item-date">{formatDate(call.timestamp)}</div>
+                <div className="text-sm opacity-70">{formatDate(call.timestamp)}</div>
                 {call.duration !== undefined && (
-                  <div className="history-item-duration">
+                  <div className="text-sm font-medium">
                     {formatDuration(call.duration)}
                   </div>
                 )}
