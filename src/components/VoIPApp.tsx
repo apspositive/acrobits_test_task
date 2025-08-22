@@ -7,6 +7,7 @@ import { CallControls } from './CallControls';
 import { CallHistory } from './CallHistory';
 import { CallScreen } from './CallScreen';
 import { HistoryScreen } from './HistoryScreen';
+import { IncomingCallScreen } from './IncomingCallScreen';
 import sipConfig from '../sipConfig';
 import { ThemeProvider } from './ThemeProvider';
 
@@ -34,6 +35,8 @@ export const VoIPApp = () => {
   const [callStatus, setCallStatus] = useState('Ready');
   const [isMuted, setIsMuted] = useState(false);
   const [isOnHold, setIsOnHold] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(false);
+  const [callerNumber, setCallerNumber] = useState('');
   
   // Call history
   const [callHistory, setCallHistory] = useState<CallHistoryItem[]>(() => {
@@ -57,10 +60,19 @@ export const VoIPApp = () => {
       setIsMuted(state.isMuted);
       setIsOnHold(state.isOnHold);
       
-      // Show call screen when in call or calling
-      if (state.isInCall || state.isCalling) {
+      // Handle incoming call notifications
+      if (state.isCalling && !state.isInCall && state.callStatus.startsWith('Incoming call from')) {
+        setIncomingCall(true);
+        setCallerNumber(sipService.getIncomingCallerNumber());
+      } else if (!state.isCalling || state.isInCall) {
+        setIncomingCall(false);
+        setCallerNumber('');
+      }
+      
+      // Show call screen when in call or calling (but not for incoming call notifications)
+      if (state.isInCall || (state.isCalling && !state.callStatus.startsWith('Incoming call from'))) {
         setShowCallScreen(true);
-      } else if (!state.isInCall && !state.isCalling) {
+      } else if (!state.isInCall && (!state.isCalling || !state.callStatus.startsWith('Incoming call from'))) {
         setShowCallScreen(false);
       }
     });
@@ -93,6 +105,21 @@ export const VoIPApp = () => {
     await sipService.endCall();
   };
   
+  // Accept incoming call
+  const acceptCall = async () => {
+    await sipService.acceptIncomingCall();
+  };
+  
+  // Reject incoming call
+  const rejectCall = async () => {
+    await sipService.rejectIncomingCall();
+  };
+  
+  // Ignore incoming call (same as reject but without explicit user action)
+  const ignoreCall = async () => {
+    await sipService.rejectIncomingCall();
+  };
+  
   // Toggle mute
   const toggleMute = () => {
     sipService.toggleMute();
@@ -106,7 +133,14 @@ export const VoIPApp = () => {
   return (
     <div className="voip-container">
       <ThemeProvider>
-        {showCallScreen ? (
+        {incomingCall ? (
+          <IncomingCallScreen
+            callerNumber={callerNumber}
+            onAccept={acceptCall}
+            onReject={rejectCall}
+            onIgnore={ignoreCall}
+          />
+        ) : showCallScreen ? (
           <CallScreen 
             calleeNumber={phoneNumber}
             onEndCall={endCall}

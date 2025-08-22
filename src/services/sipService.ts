@@ -25,10 +25,12 @@ export interface SipServiceState {
 export class SipService {
   private userAgent: UserAgent | null = null;
   private registerer: Registerer | null = null;
-  private session: Inviter | null = null;
+  private session: Inviter | Invitation | null = null;
+  private incomingInvitation: Invitation | null = null;
   private callStartTime: number = 0;
   private username: string;
   private domain: string;
+  private registrationRefreshInterval: ReturnType<typeof setInterval> | null = null;
   
   // Callbacks
   private onStateChange: ((state: SipServiceState) => void) | null = null;
@@ -102,21 +104,66 @@ export class SipService {
         onInvite: (invitation: Invitation) => {
           console.log('Incoming call from:', invitation.remoteIdentity.uri);
           
-          // For demo purposes, we'll automatically reject incoming calls
-          invitation.reject();
+          // Store the invitation for later handling
+          this.incomingInvitation = invitation;
           
-          // Add to call history
-          const newCall: CallHistoryItem = {
-            id: Date.now().toString(),
-            number: invitation.remoteIdentity.uri.user || 'Unknown',
-            direction: 'incoming',
-            status: 'rejected',
-            timestamp: new Date()
-          };
+          // Update state to indicate incoming call
+          this.updateState({
+            isCalling: true,
+            callStatus: `Incoming call from ${invitation.remoteIdentity.uri.user || 'Unknown'}`
+          });
           
-          if (this.onCallHistoryUpdate) {
-            this.onCallHistoryUpdate(newCall);
-          }
+          // Handle the invitation state changes
+          invitation.stateChange.addListener((state: SessionState) => {
+            console.log('Incoming call state changed:', state);
+            
+            // If this invitation has been accepted and became our session, 
+            // we don't need to handle state changes here anymore
+            if (this.session === invitation && state === SessionState.Established) {
+              // The acceptIncomingCall method already handled the state update
+              return;
+            }
+            
+            switch (state) {
+              case SessionState.Established:
+                // This should only happen if the call was auto-accepted (which we don't do)
+                this.callStartTime = Date.now();
+                this.updateState({
+                  isCalling: false,
+                  isInCall: true,
+                  callStatus: 'In call',
+                  isMuted: false,
+                  isOnHold: false
+                });
+                break;
+              case SessionState.Terminated:
+                {
+                  const duration = this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
+                  this.updateState({
+                    isCalling: false,
+                    isInCall: false,
+                    callStatus: 'Ready',
+                    isMuted: false,
+                    isOnHold: false
+                  });
+                  // Reset call start time
+                  this.callStartTime = 0;
+                  
+                  // Add to call history if we have a session
+                  if (this.onCallHistoryUpdate) {
+                    this.onCallHistoryUpdate({
+                      id: Date.now().toString(),
+                      number: invitation.remoteIdentity.uri.user || 'Unknown',
+                      direction: 'incoming',
+                      status: 'completed',
+                      timestamp: new Date(),
+                      duration
+                    });
+                  }
+                }
+                break;
+            }
+          });
         }
       };
       
@@ -137,6 +184,16 @@ export class SipService {
       
       // Register
       await this.registerer.register();
+      
+      // Set up periodic registration refresh
+      this.registrationRefreshInterval = setInterval(() => {
+        if (this.registerer && this.state.isRegistered) {
+          this.registerer.register().catch(error => {
+            console.error('Registration refresh failed:', error);
+            this.updateState({ isRegistered: false, callStatus: 'Registration failed' });
+          });
+        }
+      }, 300000); // Refresh every 5 minutes
       
       this.updateState({ callStatus: 'Ready' });
     } catch (error) {
@@ -220,15 +277,42 @@ export class SipService {
   
   // End current call
   public async endCall() {
+    // Check if this is an incoming call that needs to be rejected
+    if (this.incomingInvitation && this.incomingInvitation.state === SessionState.Initial) {
+      try {
+        await this.incomingInvitation.reject();
+        // Update state after rejecting incoming call
+        this.updateState({
+          isCalling: false,
+          callStatus: 'Ready'
+        });
+      } catch (error) {
+        console.error('Error rejecting call:', error);
+      }
+      return;
+    }
+    
     if (this.session) {
       try {
-        if (this.session.state === SessionState.Established || this.session.state === SessionState.Initial) {
-          await this.session.bye();
+        // Check if this is an incoming call (Invitation) or outgoing call (Inviter)
+        if (this.session instanceof Invitation) {
+          // This is an incoming call (Invitation)
+          if (this.session.state === SessionState.Established) {
+            await this.session.bye();
+          } else if (this.session.state === SessionState.Initial) {
+            await this.session.reject();
+          }
         } else {
-          this.session.cancel();
+          // This is an outgoing call (Inviter)
+          if (this.session.state === SessionState.Established || this.session.state === SessionState.Initial) {
+            await this.session.bye();
+          } else {
+            this.session.cancel();
+          }
         }
       } catch (error) {
         console.error('Error ending call:', error);
+      } finally {
         // Force state update
         this.updateState({
           isCalling: false,
@@ -237,13 +321,12 @@ export class SipService {
           isMuted: false,
           isOnHold: false
         });
-        // Reset call start time
+        // Reset session and call start time
+        this.session = null;
         this.callStartTime = 0;
       }
     }
   }
-  
-  // Toggle mute
   public toggleMute() {
     if (this.session) {
       // In a real implementation, this would actually mute the call
@@ -278,8 +361,67 @@ export class SipService {
     return this.callStartTime ? Math.floor((Date.now() - this.callStartTime) / 1000) : 0;
   }
   
+  // Accept incoming call
+  public async acceptIncomingCall() {
+    if (this.incomingInvitation && this.incomingInvitation.state === SessionState.Initial) {
+      try {
+        // Accept the incoming call
+        await this.incomingInvitation.accept();
+        // Set the session to the invitation for proper call handling
+        this.session = this.incomingInvitation;
+        // Clear the incoming invitation as it's now the active session
+        this.incomingInvitation = null;
+        // Update state to reflect we're now in a call
+        this.callStartTime = Date.now();
+        this.updateState({
+          isCalling: false,
+          isInCall: true,
+          callStatus: 'In call'
+        });
+      } catch (error) {
+        console.error('Error accepting call:', error);
+        this.updateState({
+          isCalling: false,
+          callStatus: 'Ready'
+        });
+      }
+    }
+  }
+  
+  // Reject incoming call
+  public async rejectIncomingCall() {
+    if (this.incomingInvitation && this.incomingInvitation.state === SessionState.Initial) {
+      try {
+        await this.incomingInvitation.reject();
+        // Update state after rejecting incoming call
+        this.updateState({
+          isCalling: false,
+          callStatus: 'Ready'
+        });
+        // Clear the incoming invitation
+        this.incomingInvitation = null;
+      } catch (error) {
+        console.error('Error rejecting call:', error);
+      }
+    }
+  }
+  
+  // Get caller number for incoming call
+  public getIncomingCallerNumber(): string {
+    if (this.incomingInvitation) {
+      return this.incomingInvitation.remoteIdentity.uri.user || 'Unknown';
+    }
+    return '';
+  }
+  
   // Cleanup
   public async cleanup() {
+    // Clear registration refresh interval
+    if (this.registrationRefreshInterval) {
+      clearInterval(this.registrationRefreshInterval);
+      this.registrationRefreshInterval = null;
+    }
+    
     if (this.session) {
       try {
         await this.session.bye();

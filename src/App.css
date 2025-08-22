@@ -15,6 +15,7 @@
   --call-btn-hover: #218838;
   --call-btn-text: #ffffff;
   --hangup-btn-bg: #dc3545;
+  --ignore-btn-bg: #9a7f26;
   --hangup-btn-hover: #c82333;
   --hangup-btn-text: #ffffff;
   --disabled-btn-bg: #6c757d;
@@ -66,6 +67,7 @@
   --call-btn-hover: #218838;
   --call-btn-text: #ffffff;
   --hangup-btn-bg: #dc3545;
+  --ignore-btn-bg: #f0b802;
   --hangup-btn-hover: #c82333;
   --hangup-btn-text: #ffffff;
   --disabled-btn-bg: #6c757d;
@@ -776,6 +778,88 @@ body *::after {
   padding: 2rem;
   color: var(--text-color);
   opacity: 0.7;
+}
+
+/* Incoming Call Screen */
+.incoming-call-screen {
+  text-align: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 640px;
+  max-height: 100svh;
+}
+
+.screen-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  background-color: var(--container-bg);
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.screen-content h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.caller-number {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.auto-reject-timer {
+  margin-bottom: 2rem;
+  color: var(--text-color);
+  opacity: 0.8;
+}
+
+.screen-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 300px;
+}
+
+.accept-button, .reject-button, .ignore-button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  width: 100%;
+  min-width: 150px;
+  font-weight: bold;
+  height: 50px;
+}
+
+.accept-button {
+  background-color: var(--call-btn-bg);
+  color: var(--call-btn-text);
+}
+
+.accept-button:hover {
+  background-color: var(--call-btn-hover);
+}
+
+.reject-button {
+  background-color: var(--hangup-btn-bg);
+  color: var(--hangup-btn-text);
+}
+
+.ignore-button {
+  background-color: var(--ignore-btn-bg);
+  color: var(--hangup-btn-text);
+}
+
+.reject-button:hover, .ignore-button:hover {
+  background-color: var(--hangup-btn-hover);
 }
 
 /* Responsive design */
