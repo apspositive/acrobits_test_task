@@ -12,6 +12,14 @@ A React-based VoIP (Voice over IP) application that allows users to make and rec
 - Light/Dark theme support
 - Responsive design
 
+## Known issues
+
+- The Issue with the status of rejected on other side calls
+- Sound issue with incoming call 
+- Did not finished with Styling: Use Tailwind, keep it as future improvement
+- last commits breaking call duration and automatic hang up on rject/end call on other side. Easy to fix
+
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
@@ -91,13 +99,6 @@ The application follows a component-based architecture with separation of concer
 - `DialPad.tsx`: Phone number input interface
 - `CallControls.tsx`: Call action buttons
 - `CallHistory.tsx`: Call history display
-
-## Known issues
-
-- The Issue with the status of rejected on other side calls
-- Sound issue with incoming call 
-- Did not finished with Styling: Use Tailwind, keep it as future improvement
-
 
 ## Troubleshooting
 
