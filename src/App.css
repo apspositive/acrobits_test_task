@@ -365,7 +365,6 @@ body *::after {
 }
 
 .dial-pad-backspace {
-  grid-column: span 2;
   background-color: #dc3545;
   color: white;
   border: none;
@@ -383,22 +382,36 @@ body *::after {
   background-color: #c82333;
 }
 
-.dial-pad-close {
-  background-color: var(--dial-pad-key-bg);
-  border: 1px solid var(--dial-pad-key-border);
+.dial-pad-backspace.small {
+  grid-column: span 1;
+  padding: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.dial-pad-call {
+  background-color: var(--call-btn-bg);
+  border: none;
   border-radius: 8px;
   padding: 1rem;
   font-size: 1rem;
   cursor: pointer;
-  color: var(--text-color);
+  color: var(--call-btn-text);
   height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-weight: bold;
 }
 
-.dial-pad-close:hover {
-  background-color: var(--dial-pad-key-hover);
+.dial-pad-call:hover {
+  background-color: var(--call-btn-hover);
+}
+
+.dial-pad-call.large {
+  grid-column: span 2;
+  padding: 1rem;
+  font-size: 1.2rem;
+  height: 50px;
 }
 
 .call-controls {

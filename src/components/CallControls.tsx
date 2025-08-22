@@ -1,36 +1,44 @@
+import { useSelector } from 'react-redux';
+import type { RootState } from '../store';
+
 interface CallControlsProps {
-  isInCall: boolean;
-  isCalling: boolean;
-  isRegistered: boolean;
-  isConnected: boolean;
   phoneNumber: string;
   onPlaceCall: () => void;
   onEndCall: () => void;
-  isMuted?: boolean;
-  isOnHold?: boolean;
-  onMuteToggle?: () => void;
-  onHoldToggle?: () => void;
-  callDuration?: number;
 }
 
 export const CallControls = ({ 
-  isInCall, 
-  isCalling, 
-  isRegistered, 
-  isConnected, 
   phoneNumber, 
   onPlaceCall, 
-  onEndCall,
-  isMuted = false,
-  isOnHold = false,
-  onMuteToggle,
-  onHoldToggle,
-  callDuration = 0
+  onEndCall
 }: CallControlsProps) => {
+  // Redux hooks
+  const sipState = useSelector((state: RootState) => state.sip);
+  const { 
+    isConnected, 
+    isRegistered, 
+    isCalling, 
+    isInCall, 
+    isMuted,
+    isOnHold,
+    callStartTime
+  } = sipState;
+  
+  // Calculate call duration
+  const callDuration = callStartTime > 0 ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
+  // Define toggle functions
+  const onMuteToggle = () => {
+    // This will be implemented in the parent component
+  };
+  
+  const onHoldToggle = () => {
+    // This will be implemented in the parent component
+  };
+  
   return (
     <div className="call-controls">
       {/* Show mute and hold buttons only during a call */}
-      {(isInCall || isCalling) && onMuteToggle && onHoldToggle && (
+      {(isInCall || isCalling) && (
         <div className="call-options">
           <button 
             className={`control-button mute-button ${isMuted ? 'active' : ''}`}

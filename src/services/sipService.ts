@@ -1,4 +1,7 @@
 import { UserAgent, Registerer, Inviter, SessionState, Invitation, UserAgentState } from 'sip.js';
+import store from '../store';
+import { updateSipState } from '../store/sipSlice';
+import { addCall } from '../store/callHistorySlice';
 import sipConfig from '../sipConfig';
 
 // Types
@@ -32,10 +35,6 @@ export class SipService {
   private domain: string;
   private registrationRefreshInterval: ReturnType<typeof setInterval> | null = null;
   
-  // Callbacks
-  private onStateChange: ((state: SipServiceState) => void) | null = null;
-  private onCallHistoryUpdate: ((call: CallHistoryItem) => void) | null = null;
-  
   // State
   private state: SipServiceState = {
     isConnected: false,
@@ -55,13 +54,13 @@ export class SipService {
     this.domain = domain;
   }
   
-  // Set callbacks
-  public setOnStateChange(callback: (state: SipServiceState) => void) {
-    this.onStateChange = callback;
+  // These methods are kept for backward compatibility but won't be used
+  public setOnStateChange() {
+    // No-op - using Redux instead
   }
   
-  public setOnCallHistoryUpdate(callback: (call: CallHistoryItem) => void) {
-    this.onCallHistoryUpdate = callback;
+  public setOnCallHistoryUpdate() {
+    // No-op - using Redux instead
   }
   
   // Initialize SIP user agent
@@ -149,17 +148,15 @@ export class SipService {
                   // Reset call start time
                   this.callStartTime = 0;
                   
-                  // Add to call history if we have a session
-                  if (this.onCallHistoryUpdate) {
-                    this.onCallHistoryUpdate({
-                      id: Date.now().toString(),
-                      number: invitation.remoteIdentity.uri.user || 'Unknown',
-                      direction: 'incoming',
-                      status: 'completed',
-                      timestamp: new Date(),
-                      duration
-                    });
-                  }
+                  // Add to call history
+                  store.dispatch(addCall({
+                    id: Date.now().toString(),
+                    number: invitation.remoteIdentity.uri.user || 'Unknown',
+                    direction: 'incoming',
+                    status: 'completed',
+                    timestamp: new Date(),
+                    duration
+                  }));
                 }
                 break;
             }
@@ -245,18 +242,25 @@ export class SipService {
               this.callStartTime = 0;
               
               // Add to call history
+              // Determine call status based on session state
+              let callStatus: 'completed' | 'missed' | 'rejected' | 'in-progress' = 'completed';
+              
+              // If the session was never established, it's a missed call
+              if (!this.callStartTime) {
+                callStatus = 'missed';
+              }
+              
               const completedCall: CallHistoryItem = {
                 id: Date.now().toString(),
                 number: phoneNumber,
                 direction: 'outgoing',
-                status: 'completed',
+                status: callStatus,
                 timestamp: new Date(),
-                duration
+                duration: callStatus === 'completed' ? duration : undefined
               };
               
-              if (this.onCallHistoryUpdate) {
-                this.onCallHistoryUpdate(completedCall);
-              }
+              // Dispatch to Redux store
+              store.dispatch(addCall(completedCall));
             }
             break;
         }
@@ -286,6 +290,19 @@ export class SipService {
           isCalling: false,
           callStatus: 'Ready'
         });
+        
+        // Add rejected call to history
+        const callerNumber = this.incomingInvitation.remoteIdentity.uri.user || 'Unknown';
+        const rejectedCall: CallHistoryItem = {
+          id: Date.now().toString(),
+          number: callerNumber,
+          direction: 'incoming',
+          status: 'rejected',
+          timestamp: new Date()
+        };
+        
+        // Dispatch to Redux store
+        store.dispatch(addCall(rejectedCall));
       } catch (error) {
         console.error('Error rejecting call:', error);
       }
@@ -398,6 +415,20 @@ export class SipService {
           isCalling: false,
           callStatus: 'Ready'
         });
+        
+        // Add rejected call to history
+        const callerNumber = this.incomingInvitation.remoteIdentity.uri.user || 'Unknown';
+        const rejectedCall: CallHistoryItem = {
+          id: Date.now().toString(),
+          number: callerNumber,
+          direction: 'incoming',
+          status: 'rejected',
+          timestamp: new Date()
+        };
+        
+        // Dispatch to Redux store
+        store.dispatch(addCall(rejectedCall));
+        
         // Clear the incoming invitation
         this.incomingInvitation = null;
       } catch (error) {
@@ -445,14 +476,18 @@ export class SipService {
         console.error('Error stopping user agent:', error);
       }
     }
+    
+    // Reset session and call start time
+    this.session = null;
+    this.incomingInvitation = null;
+    this.callStartTime = 0;
   }
   
   // Update state and notify listeners
-  private updateState(newState: Partial<SipServiceState>) {
-    this.state = { ...this.state, ...newState };
-    if (this.onStateChange) {
-      this.onStateChange(this.state);
-    }
+  private updateState(updates: Partial<SipServiceState>) {
+    this.state = { ...this.state, ...updates };
+    // Dispatch to Redux store
+    store.dispatch(updateSipState(updates));
   }
 }
 

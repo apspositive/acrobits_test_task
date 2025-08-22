@@ -2,10 +2,11 @@ import { useState } from 'react';
 
 interface DialPadProps {
   onNumberChange: (number: string) => void;
+  onEnterPress?: () => void;
   currentNumber: string;
 }
 
-export const DialPad = ({ onNumberChange, currentNumber }: DialPadProps) => {
+export const DialPad = ({ onNumberChange, onEnterPress, currentNumber }: DialPadProps) => {
   const [showDialPad, setShowDialPad] = useState(false);
 
   const handleKeyPress = (key: string) => {
@@ -22,6 +23,12 @@ export const DialPad = ({ onNumberChange, currentNumber }: DialPadProps) => {
         type="tel"
         value={currentNumber}
         onChange={(e) => onNumberChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && onEnterPress) {
+            e.preventDefault();
+            onEnterPress();
+          }
+        }}
         placeholder="Enter phone number"
         className="phone-input"
         pattern="[0-9]*"
@@ -51,16 +58,21 @@ export const DialPad = ({ onNumberChange, currentNumber }: DialPadProps) => {
           </div>
           <div className="dial-pad-actions">
             <button
-              className="dial-pad-backspace"
+              className="dial-pad-backspace small"
               onClick={handleBackspace}
+              aria-label="Backspace"
             >
-              ⌫ Backspace
+              ⌫
             </button>
             <button
-              className="dial-pad-close"
-              onClick={() => setShowDialPad(false)}
+              className="dial-pad-call large"
+              onClick={() => {
+                setShowDialPad(false);
+                // Call the onEnterPress function if provided
+                if (onEnterPress) onEnterPress();
+              }}
             >
-              Close
+              Call
             </button>
           </div>
         </div>

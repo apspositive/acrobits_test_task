@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { SipService } from '../services/sipService';
-import type { CallHistoryItem } from '../services/sipService';
 import { StatusBar } from './StatusBar';
 import { DialPad } from './DialPad';
 import { CallControls } from './CallControls';
@@ -10,12 +10,30 @@ import { HistoryScreen } from './HistoryScreen';
 import { IncomingCallScreen } from './IncomingCallScreen';
 import sipConfig from '../sipConfig';
 import { ThemeProvider } from './ThemeProvider';
+import { setCallerNumber, resetCallState } from '../store/sipSlice';
+import type { RootState, AppDispatch } from '../store';
 
 export const VoIPApp = () => {
   // State
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showCallScreen, setShowCallScreen] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<'main' | 'history'>('main');
+  const [incomingCall, setIncomingCall] = useState(false);
+  
+  // Redux hooks
+  const dispatch = useDispatch<AppDispatch>();
+  const sipState = useSelector((state: RootState) => state.sip);
+  const callHistory = useSelector((state: RootState) => state.callHistory.calls);
+  
+  // Extract SIP state values
+  const { 
+    isConnected, 
+    isRegistered, 
+    callStatus, 
+    callerNumber
+  } = sipState;
+  
+  // Initialize SIP service
   const [sipService] = useState(() => {
     // Parse user1 URI to extract username and domain
     const parseURI = (uri: string) => {
@@ -27,64 +45,13 @@ export const VoIPApp = () => {
     return new SipService(username, domain);
   });
   
-  // SIP service state
-  const [isConnected, setIsConnected] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [isCalling, setIsCalling] = useState(false);
-  const [isInCall, setIsInCall] = useState(false);
-  const [callStatus, setCallStatus] = useState('Ready');
-  const [isMuted, setIsMuted] = useState(false);
-  const [isOnHold, setIsOnHold] = useState(false);
-  const [incomingCall, setIncomingCall] = useState(false);
-  const [callerNumber, setCallerNumber] = useState('');
-  
-  // Call history
-  const [callHistory, setCallHistory] = useState<CallHistoryItem[]>(() => {
-    const savedHistory = localStorage.getItem('callHistory');
-    return savedHistory ? JSON.parse(savedHistory) : [];
-  });
-  
-  useEffect(() => {
-    localStorage.setItem('callHistory', JSON.stringify(callHistory));
-  }, [callHistory]);
-  
   // Initialize SIP service
   useEffect(() => {
-    // Set up state change listener
-    sipService.setOnStateChange((state) => {
-      setIsConnected(state.isConnected);
-      setIsRegistered(state.isRegistered);
-      setIsCalling(state.isCalling);
-      setIsInCall(state.isInCall);
-      setCallStatus(state.callStatus);
-      setIsMuted(state.isMuted);
-      setIsOnHold(state.isOnHold);
-      
-      // Handle incoming call notifications
-      if (state.isCalling && !state.isInCall && state.callStatus.startsWith('Incoming call from')) {
-        setIncomingCall(true);
-        setCallerNumber(sipService.getIncomingCallerNumber());
-      } else if (!state.isCalling || state.isInCall) {
-        setIncomingCall(false);
-        setCallerNumber('');
-      }
-      
-      // Show call screen when in call or calling (but not for incoming call notifications)
-      if (state.isInCall || (state.isCalling && !state.callStatus.startsWith('Incoming call from'))) {
-        setShowCallScreen(true);
-      } else if (!state.isInCall && (!state.isCalling || !state.callStatus.startsWith('Incoming call from'))) {
-        setShowCallScreen(false);
-      }
-    });
+    // Set up state change listener - now handled by Redux in SipService
+    sipService.setOnStateChange();
     
-    // Set up call history listener
-    sipService.setOnCallHistoryUpdate((call) => {
-      setCallHistory(prev => {
-        const newHistory = [call, ...prev];
-        localStorage.setItem('callHistory', JSON.stringify(newHistory));
-        return newHistory;
-      });
-    });
+    // Set up call history listener - now handled by Redux in SipService
+    sipService.setOnCallHistoryUpdate();
     
     // Initialize SIP service
     sipService.initialize();
@@ -93,7 +60,24 @@ export const VoIPApp = () => {
     return () => {
       sipService.cleanup();
     };
-  }, [sipService]);
+  }, [sipService, dispatch]);
+  
+  // Update UI state based on Redux state
+  useEffect(() => {
+    // Handle incoming call notifications
+    if (sipState.isCalling && !sipState.isInCall && sipState.callStatus.startsWith('Incoming call from')) {
+      setIncomingCall(true);
+    } else if (!sipState.isCalling || sipState.isInCall) {
+      setIncomingCall(false);
+    }
+    
+    // Show call screen when in call or calling (but not for incoming call notifications)
+    if (sipState.isInCall || (sipState.isCalling && !sipState.callStatus.startsWith('Incoming call from'))) {
+      setShowCallScreen(true);
+    } else if (!sipState.isInCall && (!sipState.isCalling || !sipState.callStatus.startsWith('Incoming call from'))) {
+      setShowCallScreen(false);
+    }
+  }, [sipState]);
   
   // Place outgoing call
   const placeCall = async () => {
@@ -103,16 +87,20 @@ export const VoIPApp = () => {
   // End current call
   const endCall = async () => {
     await sipService.endCall();
+    dispatch(resetCallState());
   };
   
   // Accept incoming call
   const acceptCall = async () => {
     await sipService.acceptIncomingCall();
+    setIncomingCall(false);
   };
   
   // Reject incoming call
   const rejectCall = async () => {
     await sipService.rejectIncomingCall();
+    setIncomingCall(false);
+    dispatch(setCallerNumber(undefined));
   };
   
   // Ignore incoming call (same as reject but without explicit user action)
@@ -135,7 +123,7 @@ export const VoIPApp = () => {
       <ThemeProvider>
         {incomingCall ? (
           <IncomingCallScreen
-            callerNumber={callerNumber}
+            callerNumber={callerNumber || ''}
             onAccept={acceptCall}
             onReject={rejectCall}
             onIgnore={ignoreCall}
@@ -146,13 +134,6 @@ export const VoIPApp = () => {
             onEndCall={endCall}
             onMuteToggle={toggleMute}
             onHoldToggle={toggleHold}
-            isMuted={isMuted}
-            isOnHold={isOnHold}
-            callStartTime={sipService.getCallStartTime()}
-            isConnected={isConnected}
-            isRegistered={isRegistered}
-            isCalling={isCalling}
-            isInCall={isInCall}
             onPlaceCall={placeCall}
           />
         ) : currentScreen === 'history' ? (
@@ -176,6 +157,7 @@ export const VoIPApp = () => {
             {/* Phone Number Input and Dial Pad */}
             <DialPad 
               onNumberChange={setPhoneNumber}
+              onEnterPress={placeCall}
               currentNumber={phoneNumber}
             />
             
@@ -183,10 +165,6 @@ export const VoIPApp = () => {
             <CallControls 
               onPlaceCall={placeCall}
               onEndCall={endCall}
-              isCalling={isCalling}
-              isInCall={isInCall}
-              isRegistered={isRegistered}
-              isConnected={isConnected}
               phoneNumber={phoneNumber}
             />
             
