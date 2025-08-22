@@ -32,7 +32,7 @@ export const DialPad = ({ onNumberChange, currentNumber }: DialPadProps) => {
         onClick={() => setShowDialPad(!showDialPad)}
         aria-label="Open dial pad"
       >
-        ☎️
+        <img src="/src/assets/dialpad.svg" alt="Dial pad" className="dialpad-icon" />
       </button>
       
       {/* Virtual Dial Pad */}

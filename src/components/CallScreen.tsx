@@ -36,7 +36,9 @@ export const CallScreen = ({
 
   // Update call duration every second
   useEffect(() => {
+    // Reset call duration when call starts
     if (callStartTime > 0) {
+      setCallDuration(0);
       intervalRef.current = setInterval(() => {
         setCallDuration(Math.floor((Date.now() - callStartTime) / 1000));
       }, 1000);
@@ -48,13 +50,6 @@ export const CallScreen = ({
       }
     };
   }, [callStartTime]);
-
-  // Format call duration as MM:SS
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
 
   return (
     <div className="call-screen">

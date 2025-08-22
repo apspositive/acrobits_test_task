@@ -45,6 +45,8 @@
   --dial-pad-key-bg: #ffffff;
   --dial-pad-key-border: #ccc;
   --dial-pad-key-hover: #f0f0f0;
+
+  --dial-pad-icon-filter: none;
 }
 
 /* Dark theme */
@@ -94,6 +96,8 @@
   --dial-pad-key-bg: #444;
   --dial-pad-key-border: #555;
   --dial-pad-key-hover: #555;
+
+  --dial-pad-icon-filter: invert(100%);
 }
 
 /* Base styles */
@@ -140,8 +144,8 @@ body *::after {
 
 .theme-toggle {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: -20px;
+  right: -20px;
   width: 40px;
   height: 40px;
   background: var(--input-bg);
@@ -286,6 +290,7 @@ body *::after {
   cursor: pointer;
   font-size: 1.5rem;
   opacity: 0.7;
+  padding: 0;
   height: 50px;
   display: flex;
   align-items: center;
@@ -294,6 +299,15 @@ body *::after {
 
 .input-icon:hover {
   opacity: 1;
+}
+
+.dialpad-icon {
+  width: 24px;
+  height: 24px;
+  position: absolute;
+  right: 1rem;
+  filter: invert(100%);
+  -webkit-filter: var(--dial-pad-icon-filter);
 }
 
 /* Dial Pad Styles */

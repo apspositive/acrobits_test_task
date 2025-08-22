@@ -184,6 +184,8 @@ export class SipService {
                 isMuted: false,
                 isOnHold: false
               });
+              // Reset call start time
+              this.callStartTime = 0;
               
               // Add to call history
               const completedCall: CallHistoryItem = {
@@ -211,6 +213,8 @@ export class SipService {
         isCalling: false,
         callStatus: 'Call failed'
       });
+      // Reset call start time
+      this.callStartTime = 0;
     }
   }
   
@@ -233,6 +237,8 @@ export class SipService {
           isMuted: false,
           isOnHold: false
         });
+        // Reset call start time
+        this.callStartTime = 0;
       }
     }
   }
